@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "749564370972",
+    "project_id": "fitpass-app-3f52e",
+    "storage_bucket": "fitpass-app-3f52e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:749564370972:android:317aa7f53a46a0f8a27fd9",
+        "android_client_info": {
+          "package_name": "com.example.fitpass"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCBtG6wdYb9yxJ2TID5nDDSUO5UclTUkc4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

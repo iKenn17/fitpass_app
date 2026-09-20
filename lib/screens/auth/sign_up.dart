@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
+import 'log_in.dart'; // adjust path/class name to match your actual login file
 
 void main() {
   runApp(const MyApp());
@@ -31,8 +34,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   bool _agreedToTerms = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
 
-  // Selected value for the "Select Member type" dropdown.
   String? _selectedMemberType;
   static const List<String> _memberTypes = ['Student', 'Senior', 'Regular'];
 
@@ -40,6 +43,78 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   static const Color _fieldColor = Color(0xFF262626);
   static const Color _greenColor = Color(0xFF4CD964);
   static const Color _hintColor = Color(0xFF8A8A8A);
+
+  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _register() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+    final confirmPassword = _confirmPasswordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      _showMessage('Please fill in email and password.');
+      return;
+    }
+    if (password != confirmPassword) {
+      _showMessage('Passwords do not match.');
+      return;
+    }
+    if (!_agreedToTerms) {
+      _showMessage('Please agree to the Terms of Service and Privacy Policy.');
+      return;
+    }
+    if (_selectedMemberType == null) {
+      _showMessage('Please select a member type.');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      final credential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      // Optional: set the display name to the entered username.
+      if (_usernameController.text.trim().isNotEmpty) {
+        await credential.user?.updateDisplayName(
+          _usernameController.text.trim(),
+        );
+      }
+
+      // TODO: if you're storing phone number / member type, write them to
+      // Firestore or Realtime Database here, keyed by credential.user!.uid.
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
+      );
+    } on FirebaseAuthException catch (e) {
+      _showMessage(e.message ?? 'Registration failed.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +126,6 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Title
               const Text(
                 'Create Account',
                 style: TextStyle(
@@ -71,22 +145,21 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 ),
               ),
               const SizedBox(height: 32),
-
-              // Full Name
-              _buildTextField(hint: 'Username'),
+              _buildTextField(
+                hint: 'Username',
+                controller: _usernameController,
+              ),
               const SizedBox(height: 16),
-
-              // Email
-              _buildTextField(hint: 'Email'),
+              _buildTextField(hint: 'Email', controller: _emailController),
               const SizedBox(height: 16),
-
-              // Phone Number
-              _buildTextField(hint: 'Phone Number'),
+              _buildTextField(
+                hint: 'Phone Number',
+                controller: _phoneController,
+              ),
               const SizedBox(height: 16),
-
-              // Password
               _buildTextField(
                 hint: 'Password',
+                controller: _passwordController,
                 obscureText: _obscurePassword,
                 isPassword: true,
                 onToggleObscure: () {
@@ -94,10 +167,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 },
               ),
               const SizedBox(height: 16),
-
-              // Confirm Password
               _buildTextField(
                 hint: 'Confirm Password',
+                controller: _confirmPasswordController,
                 obscureText: _obscureConfirmPassword,
                 isPassword: true,
                 onToggleObscure: () {
@@ -107,12 +179,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 },
               ),
               const SizedBox(height: 16),
-
-              // Select Member type dropdown
               _buildMemberTypeDropdown(),
               const SizedBox(height: 20),
-
-              // Terms checkbox
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -137,29 +205,24 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     child: Padding(
                       padding: const EdgeInsets.only(top: 3),
                       child: RichText(
-                        text: TextSpan(
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 13,
-                          ),
+                        text: const TextSpan(
+                          style: TextStyle(color: Colors.white, fontSize: 13),
                           children: [
-                            const TextSpan(text: 'I agree to the '),
+                            TextSpan(text: 'I agree to the '),
                             TextSpan(
                               text: 'Terms of Service',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: _greenColor,
                                 fontWeight: FontWeight.w600,
                               ),
-                              recognizer: null,
                             ),
-                            const TextSpan(text: '\nand '),
+                            TextSpan(text: '\nand '),
                             TextSpan(
                               text: 'Privacy Policy',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: _greenColor,
                                 fontWeight: FontWeight.w600,
                               ),
-                              recognizer: null,
                             ),
                           ],
                         ),
@@ -169,15 +232,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                 ],
               ),
               const SizedBox(height: 28),
-
-              // Register button
               SizedBox(
                 width: double.infinity,
                 height: 54,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // TODO: handle registration
-                  },
+                  onPressed: _isLoading ? null : _register,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _greenColor,
                     shape: RoundedRectangleBorder(
@@ -185,34 +244,51 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
                     ),
                     elevation: 0,
                   ),
-                  child: const Text(
-                    'REGISTER',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.black,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Text(
+                          'REGISTER',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(height: 20),
-
-              // Log in link
               Center(
-                child: RichText(
-                  text: const TextSpan(
-                    style: TextStyle(color: Colors.white, fontSize: 13),
-                    children: [
-                      TextSpan(text: 'Already have an account? '),
-                      TextSpan(
-                        text: 'Log in',
-                        style: TextStyle(
-                          color: _greenColor,
-                          fontWeight: FontWeight.bold,
-                        ),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LoginScreen(),
                       ),
-                    ],
+                    );
+                  },
+                  child: RichText(
+                    text: const TextSpan(
+                      style: TextStyle(color: Colors.white, fontSize: 13),
+                      children: [
+                        TextSpan(text: 'Already have an account? '),
+                        TextSpan(
+                          text: 'Log in',
+                          style: TextStyle(
+                            color: _greenColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -225,6 +301,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
   Widget _buildTextField({
     required String hint,
+    required TextEditingController controller,
     bool obscureText = false,
     bool isPassword = false,
     VoidCallback? onToggleObscure,
@@ -236,6 +313,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
         borderRadius: BorderRadius.circular(27),
       ),
       child: TextField(
+        controller: controller,
         obscureText: obscureText,
         style: const TextStyle(color: Colors.white, fontSize: 14),
         decoration: InputDecoration(
@@ -270,7 +348,6 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     );
   }
 
-  // "Select Member type" dropdown — Student / Senior / Regular.
   Widget _buildMemberTypeDropdown() {
     return Container(
       height: 45,
@@ -292,12 +369,8 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
           style: const TextStyle(color: Colors.white, fontSize: 14),
           borderRadius: BorderRadius.circular(16),
           items: _memberTypes
-              .map(
-                (type) => DropdownMenuItem<String>(
-                  value: type,
-                  child: Text(type),
-                ),
-              )
+              .map((type) =>
+                  DropdownMenuItem<String>(value: type, child: Text(type)))
               .toList(),
           onChanged: (value) {
             setState(() => _selectedMemberType = value);

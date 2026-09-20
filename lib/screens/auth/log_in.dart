@@ -1,11 +1,50 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import 'sign_up.dart';
 import '../dashboard/dashboard.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    setState(() => _isLoading = true);
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Dashboard()),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? 'Login failed')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +70,6 @@ class LoginScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Pushed down slightly from the top.
                   const SizedBox(height: 40),
                   const Text(
                     'Welcome back!',
@@ -53,12 +91,16 @@ class LoginScreen extends StatelessWidget {
                   ),
                   const Spacer(flex: 3),
 
-                  // Email  field
-                  const _AuthTextField(hint: 'Email'),
+                  // Email field
+                  _AuthTextField(hint: 'Email', controller: _emailController),
                   const SizedBox(height: 16),
 
                   // Password field
-                  const _AuthTextField(hint: 'Password', obscureText: true),
+                  _AuthTextField(
+                    hint: 'Password',
+                    obscureText: true,
+                    controller: _passwordController,
+                  ),
                   const SizedBox(height: 10),
 
                   // Forgot password
@@ -67,7 +109,7 @@ class LoginScreen extends StatelessWidget {
                     child: Text(
                       'Forgot password?',
                       style: TextStyle(
-                        color: const Color(0xFF38C152),
+                        color: Color(0xFF38C152),
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
@@ -80,16 +122,7 @@ class LoginScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 52,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // TODO: replace with real authentication logic.
-                        // For now, jump straight to the Dashboard.
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const Dashboard(),
-                          ),
-                        );
-                      },
+                      onPressed: _isLoading ? null : _login,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF38C152),
                         foregroundColor: Colors.black,
@@ -98,14 +131,23 @@ class LoginScreen extends StatelessWidget {
                         ),
                         elevation: 0,
                       ),
-                      child: const Text(
-                        'LOG IN',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.0,
-                        ),
-                      ),
+                      child: _isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.black,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              'LOG IN',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -152,9 +194,14 @@ class LoginScreen extends StatelessWidget {
 }
 
 class _AuthTextField extends StatefulWidget {
-  const _AuthTextField({required this.hint, this.obscureText = false});
+  const _AuthTextField({
+    required this.hint,
+    required this.controller,
+    this.obscureText = false,
+  });
 
   final String hint;
+  final TextEditingController controller;
   final bool obscureText;
 
   @override
@@ -173,6 +220,7 @@ class _AuthTextFieldState extends State<_AuthTextField> {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      controller: widget.controller,
       obscureText: _obscureText,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(

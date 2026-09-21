@@ -86,8 +86,6 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
     try {
       final credential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
-
-      // Optional: set the display name to the entered username.
       if (_usernameController.text.trim().isNotEmpty) {
         await credential.user?.updateDisplayName(
           _usernameController.text.trim(),

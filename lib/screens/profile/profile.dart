@@ -19,8 +19,6 @@ class ProfileScreen extends StatelessWidget {
   static const Color _colorGreen = Color(0xFF3ECF4A);
 
   void _handleLogout(BuildContext context) {
-    // TODO: also clear any stored session/auth token here (e.g. SharedPreferences,
-    // secure storage, or your auth provider's sign-out call) before navigating.
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -78,7 +76,6 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // ---- Back arrow + centered "Profile" title ----
   Widget _buildTopBar(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -105,8 +102,7 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  // ---- Avatar ring + name + email ----
-  Widget _buildAvatarSection() {
+  Widget _buildAvatarSection(String name, String email) {
     return Column(
       children: [
         Container(

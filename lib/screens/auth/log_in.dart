@@ -111,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           context,
                           MaterialPageRoute(
                               builder: (context) =>
-                                  const ForgotPasswordScreen()));
+                                  const ForgotPasswordPage()));
                     },
                     child: const Align(
                       alignment: Alignment.centerRight,

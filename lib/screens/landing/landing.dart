@@ -25,10 +25,10 @@ class WelcomeScreen extends StatelessWidget {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.55),
-                    Colors.black.withOpacity(0.15),
-                    Colors.black.withOpacity(0.35),
-                    Colors.black.withOpacity(0.85),
+                    Colors.black.withValues(alpha: 0.55),
+                    Colors.black.withValues(alpha: 0.15),
+                    Colors.black.withValues(alpha: 0.35),
+                    Colors.black.withValues(alpha: 0.85),
                   ],
                   stops: const [0.0, 0.25, 0.55, 1.0],
                 ),
@@ -76,7 +76,7 @@ class WelcomeScreen extends StatelessWidget {
                             TextSpan(
                               text: 'PASS',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: Color(0xFF38C152),
                                 fontSize: 26,
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 1.2,
@@ -125,7 +125,7 @@ class WelcomeScreen extends StatelessWidget {
                   Text(
                     'Your fitness journey starts here.\nTrack workouts, smash goals and\nbecome your best self.',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.85),
+                      color: Colors.white.withValues(alpha: 0.85),
                       fontSize: 13,
                       height: 1.4,
                       fontWeight: FontWeight.bold,

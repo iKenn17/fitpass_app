@@ -1,3 +1,4 @@
+import 'package:fitpass/screens/forgotpassword/forgotpassword_page.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -104,17 +105,27 @@ class _LoginScreenState extends State<LoginScreen> {
                   const SizedBox(height: 10),
 
                   // Forgot password
-                  const Align(
-                    alignment: Alignment.centerRight,
-                    child: Text(
-                      'Forgot password?',
-                      style: TextStyle(
-                        color: Color(0xFF38C152),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const ForgotPasswordScreen()));
+                    },
+                    child: const Align(
+                      alignment: Alignment.centerRight,
+                      child: Text(
+                        'Forgot password?',
+                        style: TextStyle(
+                          color: Color(0xFF38C152),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 20),
 
                   // Log in button

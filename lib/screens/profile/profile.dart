@@ -1,18 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../auth/log_in.dart';
 
 class ProfileScreen extends StatelessWidget {
-  const ProfileScreen({
-    super.key,
-    this.name = 'Jaspher sibayan',
-    this.email = 'jasphersibayan@gmail.com',
-    this.avatarUrl,
-  });
-
-  final String name;
-  final String email;
-  final String? avatarUrl;
+  const ProfileScreen({super.key});
 
   static const Color _bgColor = Color(0xFF0E0E0E);
   static const Color _cardColor = Color(0xFF1C1C1C);
@@ -34,12 +27,10 @@ class ProfileScreen extends StatelessWidget {
             child: const Text('Cancel'),
           ),
           TextButton(
-            onPressed: () {
-              // Close the dialog first, then wipe the entire navigation
-              // stack (Profile, Dashboard, everything) and drop the user
-              // back on the login screen with no way to swipe/back into
-              // the app.
+            onPressed: () async {
               Navigator.pop(context);
+              await FirebaseAuth.instance.signOut();
+              if (!context.mounted) return;
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => const LoginScreen()),
@@ -55,23 +46,58 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
     return Scaffold(
       backgroundColor: _bgColor,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildTopBar(context),
-            const SizedBox(height: 12),
-            _buildAvatarSection(),
-            const SizedBox(height: 28),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: _buildSettingsCard(context),
+        child: uid == null
+            ? const Center(
+                child: Text('Not logged in.',
+                    style: TextStyle(color: Colors.white70)),
+              )
+            : StreamBuilder<DocumentSnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(uid)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                        child: CircularProgressIndicator(color: _colorGreen));
+                  }
+                  if (snapshot.hasError ||
+                      !snapshot.hasData ||
+                      !snapshot.data!.exists) {
+                    return const Center(
+                      child: Text('Could not load profile.',
+                          style: TextStyle(color: Colors.white70)),
+                    );
+                  }
+
+                  final data = snapshot.data!.data() as Map<String, dynamic>;
+                  final username = data['username'] as String? ?? 'No name';
+                  final email = data['email'] as String? ?? '';
+                  final phoneNumber = data['phoneNumber'] as String? ?? '';
+                  final memberType = data['memberType'] as String? ?? '';
+
+                  return Column(
+                    children: [
+                      _buildTopBar(context),
+                      const SizedBox(height: 12),
+                      _buildAvatarSection(username, email),
+                      const SizedBox(height: 28),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: _buildSettingsCard(
+                              context, phoneNumber, memberType),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -85,10 +111,9 @@ class ProfileScreen extends StatelessWidget {
           const Text(
             'Profile',
             style: TextStyle(
-              color: Colors.white70,
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-            ),
+                color: Colors.white70,
+                fontSize: 15,
+                fontWeight: FontWeight.w600),
           ),
           Align(
             alignment: Alignment.centerLeft,
@@ -113,90 +138,61 @@ class ProfileScreen extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(color: Colors.white24, width: 2),
           ),
-          child: CircleAvatar(
+          child: const CircleAvatar(
             backgroundColor: Colors.white24,
-            backgroundImage:
-                avatarUrl != null ? NetworkImage(avatarUrl!) : null,
-            child: avatarUrl == null
-                ? const Icon(Icons.person, color: Colors.white70, size: 40)
-                : null,
+            child: Icon(Icons.person, color: Colors.white70, size: 40),
           ),
         ),
         const SizedBox(height: 14),
-        Text(
-          name,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 17,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        Text(name,
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 17,
+                fontWeight: FontWeight.bold)),
         const SizedBox(height: 4),
-        Text(
-          email,
-          style: const TextStyle(color: Colors.white54, fontSize: 12),
-        ),
+        Text(email,
+            style: const TextStyle(color: Colors.white54, fontSize: 12)),
       ],
     );
   }
 
-  // ---- Settings card: Personal Info / Password / Notifications / etc ----
-  Widget _buildSettingsCard(BuildContext context) {
+  Widget _buildSettingsCard(
+      BuildContext context, String phoneNumber, String memberType) {
     return Container(
       decoration: BoxDecoration(
-        color: _cardColor,
-        borderRadius: BorderRadius.circular(16),
-      ),
+          color: _cardColor, borderRadius: BorderRadius.circular(16)),
       child: Column(
         children: [
           _buildRow(
             label: 'Personal Information',
-            trailing: const Icon(
-              Icons.keyboard_arrow_down,
-              color: Colors.white54,
-              size: 20,
-            ),
+            trailing: const Icon(Icons.keyboard_arrow_down,
+                color: Colors.white54, size: 20),
             onTap: () {
-              // TODO: expand/navigate to personal information details.
+              // TODO: expand/navigate to personal information details
+              // (could show phoneNumber / memberType here).
             },
           ),
           _buildDivider(),
-          _buildRow(
-            label: 'Change Password',
-            onTap: () {
-              // TODO: navigate to change-password flow.
-            },
-          ),
+          _buildRow(label: 'Change Password', onTap: () {}),
           _buildDivider(),
           _buildRow(
             label: 'Notification',
-            trailing: const Icon(
-              Icons.keyboard_arrow_down,
-              color: Colors.white54,
-              size: 20,
-            ),
-            onTap: () {
-              // TODO: expand/navigate to notification settings.
-            },
+            trailing: const Icon(Icons.keyboard_arrow_down,
+                color: Colors.white54, size: 20),
+            onTap: () {},
           ),
           _buildDivider(),
           _buildRow(
             label: 'Help & Support',
-            trailing: const Icon(
-              Icons.help_outline,
-              color: Colors.white54,
-              size: 18,
-            ),
-            onTap: () {
-              // TODO: navigate to help & support screen.
-            },
+            trailing:
+                const Icon(Icons.help_outline, color: Colors.white54, size: 18),
+            onTap: () {},
           ),
           _buildDivider(),
           _buildRow(
-            label: 'Log out',
-            labelColor: Colors.redAccent,
-            onTap: () => _handleLogout(context),
-          ),
+              label: 'Log out',
+              labelColor: Colors.redAccent,
+              onTap: () => _handleLogout(context)),
         ],
       ),
     );
@@ -215,14 +211,11 @@ class ProfileScreen extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: labelColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            Text(label,
+                style: TextStyle(
+                    color: labelColor,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600)),
             if (trailing != null) trailing,
           ],
         ),
@@ -230,7 +223,5 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDivider() {
-    return const Divider(color: Colors.white12, height: 1);
-  }
+  Widget _buildDivider() => const Divider(color: Colors.white12, height: 1);
 }

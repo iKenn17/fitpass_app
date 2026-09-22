@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'log_in.dart'; // adjust path/class name to match your actual login file
 
@@ -87,13 +88,20 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       final credential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
       if (_usernameController.text.trim().isNotEmpty) {
-        await credential.user?.updateDisplayName(
-          _usernameController.text.trim(),
-        );
+        await credential.user
+            ?.updateDisplayName(_usernameController.text.trim());
       }
 
-      // TODO: if you're storing phone number / member type, write them to
-      // Firestore or Realtime Database here, keyed by credential.user!.uid.
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(credential.user!.uid)
+          .set({
+        'username': _usernameController.text.trim(),
+        'email': email,
+        'phoneNumber': _phoneController.text.trim(),
+        'memberType': _selectedMemberType,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
       if (!mounted) return;
       Navigator.pushReplacement(
@@ -102,6 +110,9 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       );
     } on FirebaseAuthException catch (e) {
       _showMessage(e.message ?? 'Registration failed.');
+    } catch (e) {
+      _showMessage(
+          'Something went wrong saving your profile. Please try again.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

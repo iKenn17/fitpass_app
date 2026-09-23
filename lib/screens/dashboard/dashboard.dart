@@ -111,26 +111,48 @@ class _DashboardState extends State<Dashboard>
   }
 }
 
-// =====================================================
-// HOME TAB — QR code + Time In / Time Out buttons
-// =====================================================
-class HomeTab extends StatelessWidget {
+enum _ClockAction { none, timeIn, timeOut }
+
+class HomeTab extends StatefulWidget {
   final String qrData;
 
   const HomeTab({super.key, required this.qrData});
 
-  void _handleTimeIn(BuildContext context) {
+  @override
+  State<HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends State<HomeTab> {
+  _ClockAction _lastAction = _ClockAction.none;
+  DateTime? _lastActionTime;
+
+  void _handleTimeIn() {
     // TODO: hook up to your API / backend call for clocking in.
+    setState(() {
+      _lastAction = _ClockAction.timeIn;
+      _lastActionTime = DateTime.now();
+    });
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Timed in successfully')),
     );
   }
 
-  void _handleTimeOut(BuildContext context) {
+  void _handleTimeOut() {
     // TODO: hook up to your API / backend call for clocking out.
+    setState(() {
+      _lastAction = _ClockAction.timeOut;
+      _lastActionTime = DateTime.now();
+    });
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Timed out successfully')),
     );
+  }
+
+  String _formatTime(DateTime t) {
+    final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
+    final m = t.minute.toString().padLeft(2, '0');
+    final period = t.hour >= 12 ? 'PM' : 'AM';
+    return '$h:$m $period';
   }
 
   @override
@@ -158,53 +180,142 @@ class HomeTab extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: QrImageView(
-              data: qrData,
+              data: widget.qrData,
               version: QrVersions.auto,
               size: 220,
               backgroundColor: Colors.white,
             ),
           ),
-          const SizedBox(height: 48),
+          const SizedBox(height: 32),
+
+          // ---- Status line reflecting the last action taken ----
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            child: _lastAction == _ClockAction.none
+                ? const SizedBox(key: ValueKey('none'), height: 20)
+                : Row(
+                    key: ValueKey(_lastAction),
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        _lastAction == _ClockAction.timeIn
+                            ? Icons.check_circle
+                            : Icons.logout,
+                        size: 16,
+                        color: _lastAction == _ClockAction.timeIn
+                            ? const Color(0xFF3ECF4A)
+                            : Colors.orangeAccent,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _lastAction == _ClockAction.timeIn
+                            ? 'Timed in at ${_formatTime(_lastActionTime!)}'
+                            : 'Timed out at ${_formatTime(_lastActionTime!)}',
+                        style: TextStyle(
+                          color: _lastAction == _ClockAction.timeIn
+                              ? const Color(0xFF3ECF4A)
+                              : Colors.orangeAccent,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+          const SizedBox(height: 16),
+
           Row(
             children: [
               Expanded(
-                child: ElevatedButton(
-                  onPressed: () => _handleTimeIn(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF3ECF4A),
-                    foregroundColor: Colors.black,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                  ),
-                  child: const Text(
-                    'Time in',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                child: _ClockButton(
+                  label: 'Time in',
+                  isActive: _lastAction == _ClockAction.timeIn,
+                  activeColor: const Color(0xFF3ECF4A),
+                  baseBackground: const Color(0xFF3ECF4A),
+                  baseForeground: Colors.black,
+                  onPressed: _handleTimeIn,
                 ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: ElevatedButton(
-                  onPressed: () => _handleTimeOut(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2A2A2A),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(28),
-                    ),
-                  ),
-                  child: const Text(
-                    'Time out',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
+                child: _ClockButton(
+                  label: 'Time out',
+                  isActive: _lastAction == _ClockAction.timeOut,
+                  activeColor: Colors.orangeAccent,
+                  baseBackground: const Color(0xFF2A2A2A),
+                  baseForeground: Colors.white,
+                  onPressed: _handleTimeOut,
                 ),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ---- Reusable button that highlights itself when it's the active action ----
+class _ClockButton extends StatelessWidget {
+  final String label;
+  final bool isActive;
+  final Color activeColor;
+  final Color baseBackground;
+  final Color baseForeground;
+  final VoidCallback onPressed;
+
+  const _ClockButton({
+    required this.label,
+    required this.isActive,
+    required this.activeColor,
+    required this.baseBackground,
+    required this.baseForeground,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: isActive ? activeColor : Colors.transparent,
+          width: 2,
+        ),
+        boxShadow: isActive
+            ? [
+                BoxShadow(
+                  color: activeColor.withOpacity(0.4),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                ),
+              ]
+            : [],
+      ),
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: baseBackground,
+          foregroundColor: baseForeground,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            if (isActive) ...[
+              const SizedBox(width: 6),
+              const Icon(Icons.check, size: 16),
+            ],
+          ],
+        ),
       ),
     );
   }

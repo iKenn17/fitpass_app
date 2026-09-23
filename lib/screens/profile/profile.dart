@@ -19,7 +19,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _personalInfoExpanded = false;
   bool _notificationsEnabled = true;
 
-  // ---- Change password controllers/state ----
+  // ---- Change password controllers/state ---- //
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -69,8 +69,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // TODO: persist this to Firestore (e.g. users/{uid}.notificationsEnabled)
-  void _toggleNotifications(bool value) {
-    setState(() => _notificationsEnabled = value);
+  Future<void> _toggleNotifications(bool value) async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .update({'notificationsEnabled': value});
+    } catch (e) {
+      _showSnack('Update Failed');
+    }
   }
 
   // ---- Change password flow ----
@@ -280,6 +290,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   final email = data['email'] as String? ?? '';
                   final phoneNumber = data['phoneNumber'] as String? ?? '';
                   final memberType = data['memberType'] as String? ?? '';
+                  final notificationsEnabled =
+                      data['notificationsEnabled'] as bool? ?? true;
 
                   return Column(
                     children: [
@@ -296,6 +308,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             email: email,
                             phoneNumber: phoneNumber,
                             memberType: memberType,
+                            notificationsEnabled: notificationsEnabled,
                           ),
                         ),
                       ),
@@ -367,6 +380,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required String email,
     required String phoneNumber,
     required String memberType,
+    required bool notificationsEnabled,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -403,12 +417,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onTap: () => _showChangePasswordForm(context)),
           _buildDivider(),
 
-          // ---- Notification (on/off toggle) ----
+          // ---- Notification (on/off toggle) ---- //
           _buildRow(
             label: 'Notification',
             trailing: Switch(
-              value: _notificationsEnabled,
-              activeColor: _colorGreen,
+              value: notificationsEnabled,
+              activeThumbColor: _colorGreen,
               onChanged: _toggleNotifications,
             ),
             onTap: () => _toggleNotifications(!_notificationsEnabled),

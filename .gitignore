@@ -1,3 +1,11 @@
-.dart_tool/
-.dart_tool/
 build/
+.dart_tool/
+.gradle/
+.flutter-plugins-dependencies
+*.jks
+*.keystore
+key.properties
+serviceAccount*.json
+*-adminsdk-*.json
+.env
+.DS_Store

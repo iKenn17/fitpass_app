@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../history/history.dart';
 import '../membership/membership.dart';
@@ -49,7 +51,10 @@ class _DashboardState extends State<Dashboard>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  HomeTab(qrData: widget.qrData),
+                  HomeTab(
+                    qrData:
+                        FirebaseAuth.instance.currentUser?.uid ?? widget.qrData,
+                  ),
                   const HistoryTab(),
                   const MembershipTab(),
                 ],
@@ -68,13 +73,22 @@ class _DashboardState extends State<Dashboard>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'Hello, jaspher!',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color.fromARGB(255, 250, 250, 250),
-            ),
+          StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+            stream: FirebaseFirestore.instance
+                .collection('users')
+                .doc(FirebaseAuth.instance.currentUser?.uid)
+                .snapshots(),
+            builder: (context, snap) {
+              final name = snap.data?.data()?['username'] ?? '';
+              return Text(
+                'Hello, $name!',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 250, 250, 250),
+                ),
+              );
+            },
           ),
           GestureDetector(
             onTap: () {
@@ -111,42 +125,10 @@ class _DashboardState extends State<Dashboard>
   }
 }
 
-enum _ClockAction { none, timeIn, timeOut }
-
-class HomeTab extends StatefulWidget {
+class HomeTab extends StatelessWidget {
   final String qrData;
 
   const HomeTab({super.key, required this.qrData});
-
-  @override
-  State<HomeTab> createState() => _HomeTabState();
-}
-
-class _HomeTabState extends State<HomeTab> {
-  _ClockAction _lastAction = _ClockAction.none;
-  DateTime? _lastActionTime;
-
-  void _handleTimeIn() {
-    // TODO: hook up to your API / backend call for clocking in.
-    setState(() {
-      _lastAction = _ClockAction.timeIn;
-      _lastActionTime = DateTime.now();
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Timed in successfully')),
-    );
-  }
-
-  void _handleTimeOut() {
-    // TODO: hook up to your API / backend call for clocking out.
-    setState(() {
-      _lastAction = _ClockAction.timeOut;
-      _lastActionTime = DateTime.now();
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Timed out successfully')),
-    );
-  }
 
   String _formatTime(DateTime t) {
     final h = t.hour % 12 == 0 ? 12 : t.hour % 12;
@@ -157,6 +139,8 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   Widget build(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -180,7 +164,7 @@ class _HomeTabState extends State<HomeTab> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: QrImageView(
-              data: widget.qrData,
+              data: qrData,
               version: QrVersions.auto,
               size: 220,
               backgroundColor: Colors.white,
@@ -230,72 +214,6 @@ class _HomeTabState extends State<HomeTab> {
               },
             ),
         ],
-      ),
-    );
-  }
-}
-
-// ---- Reusable button that highlights itself when it's the active action ----
-class _ClockButton extends StatelessWidget {
-  final String label;
-  final bool isActive;
-  final Color activeColor;
-  final Color baseBackground;
-  final Color baseForeground;
-  final VoidCallback onPressed;
-
-  const _ClockButton({
-    required this.label,
-    required this.isActive,
-    required this.activeColor,
-    required this.baseBackground,
-    required this.baseForeground,
-    required this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28),
-        border: Border.all(
-          color: isActive ? activeColor : Colors.transparent,
-          width: 2,
-        ),
-        boxShadow: isActive
-            ? [
-                BoxShadow(
-                  color: activeColor.withOpacity(0.4),
-                  blurRadius: 12,
-                  spreadRadius: 1,
-                ),
-              ]
-            : [],
-      ),
-      child: ElevatedButton(
-        onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: baseBackground,
-          foregroundColor: baseForeground,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            if (isActive) ...[
-              const SizedBox(width: 6),
-              const Icon(Icons.check, size: 16),
-            ],
-          ],
-        ),
       ),
     );
   }

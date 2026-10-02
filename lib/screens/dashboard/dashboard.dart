@@ -187,68 +187,48 @@ class _HomeTabState extends State<HomeTab> {
             ),
           ),
           const SizedBox(height: 32),
+          if (uid != null)
+            StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: FirebaseFirestore.instance
+                  .collection('attendance')
+                  .where('uid', isEqualTo: uid)
+                  .orderBy('timestamp', descending: true)
+                  .limit(1)
+                  .snapshots(),
+              builder: (context, snap) {
+                if (!snap.hasData || snap.data!.docs.isEmpty) {
+                  return const Text(
+                    'No check-ins yet',
+                    style: TextStyle(color: Colors.white54, fontSize: 13),
+                  );
+                }
 
-          // ---- Status line reflecting the last action taken ----
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            child: _lastAction == _ClockAction.none
-                ? const SizedBox(key: ValueKey('none'), height: 20)
-                : Row(
-                    key: ValueKey(_lastAction),
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        _lastAction == _ClockAction.timeIn
-                            ? Icons.check_circle
-                            : Icons.logout,
-                        size: 16,
-                        color: _lastAction == _ClockAction.timeIn
-                            ? const Color(0xFF3ECF4A)
-                            : Colors.orangeAccent,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        _lastAction == _ClockAction.timeIn
-                            ? 'Timed in at ${_formatTime(_lastActionTime!)}'
-                            : 'Timed out at ${_formatTime(_lastActionTime!)}',
-                        style: TextStyle(
-                          color: _lastAction == _ClockAction.timeIn
-                              ? const Color(0xFF3ECF4A)
-                              : Colors.orangeAccent,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
-          const SizedBox(height: 16),
+                final d = snap.data!.docs.first.data();
+                final ts = (d['timestamp'] as Timestamp?)?.toDate();
+                if (ts == null) return const SizedBox(height: 20);
 
-          Row(
-            children: [
-              Expanded(
-                child: _ClockButton(
-                  label: 'Time in',
-                  isActive: _lastAction == _ClockAction.timeIn,
-                  activeColor: const Color(0xFF3ECF4A),
-                  baseBackground: const Color(0xFF3ECF4A),
-                  baseForeground: Colors.black,
-                  onPressed: _handleTimeIn,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _ClockButton(
-                  label: 'Time out',
-                  isActive: _lastAction == _ClockAction.timeOut,
-                  activeColor: Colors.orangeAccent,
-                  baseBackground: const Color(0xFF2A2A2A),
-                  baseForeground: Colors.white,
-                  onPressed: _handleTimeOut,
-                ),
-              ),
-            ],
-          ),
+                final isIn = d['type'] == 'time_in';
+                final color =
+                    isIn ? const Color(0xFF3ECF4A) : Colors.orangeAccent;
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(isIn ? Icons.check_circle : Icons.logout,
+                        size: 16, color: color),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${isIn ? 'Timed in' : 'Timed out'} at ${_formatTime(ts)}',
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
         ],
       ),
     );

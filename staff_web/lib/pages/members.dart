@@ -399,7 +399,7 @@ class _MembersPageState extends State<MembersPage> {
                     ),
                     const SizedBox(height: 12),
                     DropdownButtonFormField<String>(
-                      value: type,
+                      initialValue: type,
                       dropdownColor: _cardColor,
                       style: const TextStyle(color: Colors.white, fontSize: 14),
                       decoration: _inputDecoration('Member type'),

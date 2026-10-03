@@ -236,7 +236,7 @@ class _AuthTextFieldState extends State<_AuthTextField> {
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         hintText: widget.hint,
-        hintStyle: TextStyle(color: Colors.white.withOpacity(0.4)),
+        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
         filled: true,
         fillColor: const Color(0xFF1E1E1E),
         contentPadding: const EdgeInsets.symmetric(
@@ -251,7 +251,7 @@ class _AuthTextFieldState extends State<_AuthTextField> {
             ? IconButton(
                 icon: Icon(
                   _obscureText ? Icons.visibility_off : Icons.visibility,
-                  color: Colors.white.withOpacity(0.6),
+                  color: Colors.white.withValues(alpha: 0.6),
                   size: 15,
                 ),
                 onPressed: () {

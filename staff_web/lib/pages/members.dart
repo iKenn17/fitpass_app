@@ -10,6 +10,17 @@ class MembersPage extends StatefulWidget {
 }
 
 class _MembersPageState extends State<MembersPage> {
+  static const List<String> _memberTypes = ['Regular', 'Student', 'Senior'];
+
+  static const Color _cardColor = Color(0xFF2B2B2B);
+  static const Color _green = Color(0xFF00FF66);
+  static const Color _buttonGreen = Color(0xFF28C76F);
+
+  BoxDecoration get _cardDecoration => BoxDecoration(
+    color: _cardColor,
+    borderRadius: BorderRadius.circular(8),
+    border: Border.all(color: Colors.white10),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -17,144 +28,134 @@ class _MembersPageState extends State<MembersPage> {
       animation: GymData.instance,
       builder: (context, child) {
         final gym = GymData.instance;
-
         final members = gym.members;
 
         final activeMembers = members
-            .where(
-              (member) =>
-                  member['status'] == 'Active',
-            )
+            .where((m) => m['status'] == 'Active')
             .length;
-
         final studentMembers = members
-            .where(
-              (member) =>
-                  member['type'] == 'Student',
-            )
+            .where((m) => m['type'] == 'Student')
+            .length;
+        final seniorMembers = members
+            .where((m) => m['type'] == 'Senior')
             .length;
 
         return FitpassLayout(
           currentPage: '/members',
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(16),
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 // ==================================================
                 // TITLE
                 // ==================================================
-
                 const Text(
-                  'Members',
+                  'MEMBERS',
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
+                    color: _green,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
                   ),
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
 
                 // ==================================================
-                // ADD MEMBER
+                // SUMMARY CARDS
                 // ==================================================
-
                 Row(
                   children: [
-                    _actionButton(
-                      'ADD MEMBER',
-                      Icons.person_add,
-                      _showAddMemberDialog,
+                    Expanded(
+                      child: _summaryCard(
+                        'Total Members',
+                        members.length.toString(),
+                        Icons.people_alt_outlined,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _summaryCard(
+                        'Active',
+                        activeMembers.toString(),
+                        Icons.verified_outlined,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _summaryCard(
+                        'Students',
+                        studentMembers.toString(),
+                        Icons.school_outlined,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _summaryCard(
+                        'Seniors',
+                        seniorMembers.toString(),
+                        Icons.elderly,
+                      ),
                     ),
                   ],
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
+
+                // ==================================================
+                // ADD MEMBER
+                // ==================================================
+                _actionButton(
+                  'ADD MEMBER',
+                  Icons.person_add,
+                  () => _showMemberDialog(),
+                ),
+
+                const SizedBox(height: 16),
 
                 // ==================================================
                 // MEMBER LIST
                 // ==================================================
-
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF252525),
-                    borderRadius:
-                        BorderRadius.circular(5),
-                    border: Border.all(
-                      color: const Color(0xFF3A3A3A),
-                    ),
-                  ),
+                  padding: const EdgeInsets.all(16),
+                  decoration: _cardDecoration,
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
                       const Text(
                         'Member List',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 10,
                           fontWeight: FontWeight.bold,
+                          fontSize: 14,
                         ),
                       ),
 
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
 
                       _tableHeader(),
 
-                      const SizedBox(height: 3),
+                      const Divider(color: Colors.white10),
 
                       if (members.isEmpty)
                         const Padding(
-                          padding: EdgeInsets.all(15),
+                          padding: EdgeInsets.symmetric(vertical: 24),
                           child: Center(
                             child: Text(
                               'No members found.',
                               style: TextStyle(
-                                color: Colors.white54,
-                                fontSize: 8,
+                                color: Colors.grey,
+                                fontSize: 12,
                               ),
                             ),
                           ),
                         ),
 
-                      ...members.map(
-                        (member) =>
-                            _memberRow(member),
-                      ),
+                      ...members.map(_memberRow),
                     ],
                   ),
-                ),
-
-                const SizedBox(height: 10),
-
-                // ==================================================
-                // SUMMARY
-                // ==================================================
-
-                Row(
-                  children: [
-
-                    _summaryCard(
-                      'Total Members',
-                      members.length.toString(),
-                    ),
-
-                    _summaryCard(
-                      'Active',
-                      activeMembers.toString(),
-                    ),
-
-                    _summaryCard(
-                      'Students',
-                      studentMembers.toString(),
-                    ),
-                  ],
                 ),
               ],
             ),
@@ -168,39 +169,26 @@ class _MembersPageState extends State<MembersPage> {
   // ACTION BUTTON
   // ==============================================================
 
-  Widget _actionButton(
-    String text,
-    IconData icon,
-    VoidCallback onPressed,
-  ) {
+  Widget _actionButton(String text, IconData icon, VoidCallback onPressed) {
     return SizedBox(
-      height: 28,
+      height: 32,
       child: ElevatedButton.icon(
         onPressed: onPressed,
-        icon: Icon(
-          icon,
-          size: 12,
-        ),
+        icon: Icon(icon, size: 16),
         label: Text(
           text,
           style: const TextStyle(
-            fontSize: 7,
+            fontSize: 12,
             fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
           ),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor:
-              const Color(0xFF22C55E),
+          backgroundColor: _buttonGreen,
           foregroundColor: Colors.black,
           elevation: 0,
-          padding:
-              const EdgeInsets.symmetric(
-            horizontal: 10,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(4),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         ),
       ),
     );
@@ -211,60 +199,15 @@ class _MembersPageState extends State<MembersPage> {
   // ==============================================================
 
   Widget _tableHeader() {
+    const style = TextStyle(color: Colors.grey, fontSize: 11);
+
     return const Row(
       children: [
-
-        Expanded(
-          flex: 2,
-          child: Text(
-            'Name',
-            style: TextStyle(
-              color: Colors.white54,
-              fontSize: 7,
-            ),
-          ),
-        ),
-
-        Expanded(
-          child: Text(
-            'Type',
-            style: TextStyle(
-              color: Colors.white54,
-              fontSize: 7,
-            ),
-          ),
-        ),
-
-        Expanded(
-          flex: 2,
-          child: Text(
-            'Contact',
-            style: TextStyle(
-              color: Colors.white54,
-              fontSize: 7,
-            ),
-          ),
-        ),
-
-        Expanded(
-          child: Text(
-            'Status',
-            style: TextStyle(
-              color: Colors.white54,
-              fontSize: 7,
-            ),
-          ),
-        ),
-
-        Expanded(
-          child: Text(
-            'Action',
-            style: TextStyle(
-              color: Colors.white54,
-              fontSize: 7,
-            ),
-          ),
-        ),
+        Expanded(flex: 2, child: Text('Name', style: style)),
+        Expanded(child: Text('Type', style: style)),
+        Expanded(flex: 2, child: Text('Contact', style: style)),
+        Expanded(child: Text('Status', style: style)),
+        Expanded(child: Text('Action', style: style)),
       ],
     );
   }
@@ -273,100 +216,84 @@ class _MembersPageState extends State<MembersPage> {
   // MEMBER ROW
   // ==============================================================
 
-  Widget _memberRow(
-    Map<String, String> member,
-  ) {
+  Widget _memberRow(Map<String, String> member) {
+    final status = member['status'] ?? '';
+    final isActive = status == 'Active';
+
     return Container(
-      padding:
-          const EdgeInsets.symmetric(
-        vertical: 8,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.white10,
-          ),
-        ),
+        border: Border(bottom: BorderSide(color: Colors.white10)),
       ),
       child: Row(
         children: [
-
           Expanded(
             flex: 2,
             child: Text(
               member['name'] ?? '',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 7,
-              ),
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white, fontSize: 12),
             ),
           ),
-
           Expanded(
             child: Text(
               member['type'] ?? '',
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 7,
-              ),
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
           ),
-
           Expanded(
             flex: 2,
             child: Text(
               member['contact'] ?? '',
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 7,
-              ),
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
           ),
-
           Expanded(
-            child: Text(
-              member['status'] ?? '',
-              style: const TextStyle(
-                color: Colors.greenAccent,
-                fontSize: 7,
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isActive ? const Color(0xFF294A31) : Colors.white10,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  status,
+                  style: TextStyle(
+                    color: isActive ? _green : Colors.white70,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ),
             ),
           ),
-
           Expanded(
             child: Row(
               children: [
-
                 IconButton(
-                  onPressed: () {
-                    _showEditMemberDialog(
-                      member,
-                    );
-                  },
+                  tooltip: 'Edit',
+                  onPressed: () => _showMemberDialog(member: member),
                   icon: const Icon(
-                    Icons.edit,
+                    Icons.edit_outlined,
                     color: Colors.white70,
-                    size: 12,
+                    size: 18,
                   ),
                   padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(),
+                  constraints: const BoxConstraints(),
                 ),
-
-                const SizedBox(width: 6),
-
+                const SizedBox(width: 12),
                 IconButton(
-                  onPressed: () {
-                    _deleteMember(member);
-                  },
+                  tooltip: 'Delete',
+                  onPressed: () => _deleteMember(member),
                   icon: const Icon(
-                    Icons.delete,
+                    Icons.delete_outline,
                     color: Colors.redAccent,
-                    size: 12,
+                    size: 18,
                   ),
                   padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(),
+                  constraints: const BoxConstraints(),
                 ),
               ],
             ),
@@ -380,406 +307,170 @@ class _MembersPageState extends State<MembersPage> {
   // SUMMARY CARD
   // ==============================================================
 
-  Widget _summaryCard(
-    String title,
-    String value,
-  ) {
-    return Expanded(
-      child: Container(
-        margin:
-            const EdgeInsets.only(right: 6),
-        height: 65,
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: const Color(0xFF252525),
-          borderRadius:
-              BorderRadius.circular(5),
-          border: Border.all(
-            color: const Color(0xFF3A3A3A),
+  Widget _summaryCard(String title, String value, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: _cardDecoration,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF294A31),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: _green, size: 20),
           ),
-        ),
-        child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-          children: [
-
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 7,
+          const SizedBox(width: 14),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
               ),
-            ),
-
-            const SizedBox(height: 5),
-
-            Text(
-              value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       ),
     );
   }
 
   // ==============================================================
-  // ADD MEMBER DIALOG
+  // ADD / EDIT MEMBER DIALOG
+  // Pass a member to edit it, or nothing to add a new one.
   // ==============================================================
 
-  void _showAddMemberDialog() {
-    final nameController =
-        TextEditingController();
+  void _showMemberDialog({Map<String, String>? member}) {
+    final isEdit = member != null;
 
-    final contactController =
-        TextEditingController();
+    final nameController = TextEditingController(text: member?['name']);
+    final contactController = TextEditingController(text: member?['contact']);
 
-    String type = 'Regular';
+    String type = member?['type'] ?? 'Regular';
+    if (!_memberTypes.contains(type)) type = 'Regular';
 
     showDialog(
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
-          builder:
-              (context, setDialogState) {
+          builder: (context, setDialogState) {
             return AlertDialog(
-              backgroundColor:
-                  const Color(0xFF252525),
-
-              title: const Text(
-                'Add Member',
-                style: TextStyle(
+              backgroundColor: _cardColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: const BorderSide(color: Colors.white10),
+              ),
+              title: Text(
+                isEdit ? 'Edit Member' : 'Add Member',
+                style: const TextStyle(
                   color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-
-              content: Column(
-                mainAxisSize:
-                    MainAxisSize.min,
-                children: [
-
-                  TextField(
-                    controller:
-                        nameController,
-                    style:
-                        const TextStyle(
-                      color: Colors.white,
+              content: SizedBox(
+                width: 320,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: nameController,
+                      autofocus: true,
+                      cursorColor: _green,
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      decoration: _inputDecoration('Member name'),
                     ),
-                    decoration:
-                        _inputDecoration(
-                      'Member name',
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: contactController,
+                      cursorColor: _green,
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      decoration: _inputDecoration('Contact number'),
                     ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  TextField(
-                    controller:
-                        contactController,
-                    style:
-                        const TextStyle(
-                      color: Colors.white,
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: type,
+                      dropdownColor: _cardColor,
+                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      decoration: _inputDecoration('Member type'),
+                      items: _memberTypes
+                          .map(
+                            (t) => DropdownMenuItem<String>(
+                              value: t,
+                              child: Text(t),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setDialogState(() => type = value);
+                        }
+                      },
                     ),
-                    decoration:
-                        _inputDecoration(
-                      'Contact number',
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  DropdownButtonFormField<
-                      String>(
-                    value: type,
-                    dropdownColor:
-                        const Color(
-                      0xFF252525,
-                    ),
-                    style:
-                        const TextStyle(
-                      color: Colors.white,
-                    ),
-                    decoration:
-                        _inputDecoration(
-                      'Member type',
-                    ),
-                    items: const [
-
-                      DropdownMenuItem(
-                        value: 'Regular',
-                        child:
-                            Text('Regular'),
-                      ),
-
-                      DropdownMenuItem(
-                        value: 'Student',
-                        child:
-                            Text('Student'),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        setDialogState(() {
-                          type = value;
-                        });
-                      }
-                    },
-                  ),
-                ],
+                  ],
+                ),
               ),
-
               actions: [
-
                 TextButton(
-                  onPressed: () {
-                    Navigator.pop(
-                      dialogContext,
-                    );
-                  },
+                  onPressed: () => Navigator.pop(dialogContext),
                   child: const Text(
                     'CANCEL',
-                    style: TextStyle(
-                      color: Colors.white70,
-                    ),
+                    style: TextStyle(color: Colors.white70),
                   ),
                 ),
-
                 ElevatedButton(
                   onPressed: () {
+                    final name = nameController.text.trim();
+                    final contact = contactController.text.trim();
 
-                    final name =
-                        nameController.text
-                            .trim();
+                    if (name.isEmpty) return;
 
-                    final contact =
-                        contactController.text
-                            .trim();
-
-                    if (name.isEmpty) {
-                      return;
+                    if (isEdit) {
+                      GymData.instance.editMember(
+                        member: member,
+                        name: name,
+                        type: type,
+                        contact: contact,
+                      );
+                    } else {
+                      GymData.instance.addMember(
+                        name: name,
+                        type: type,
+                        contact: contact,
+                      );
                     }
 
-                    GymData.instance.addMember(
-                      name: name,
-                      type: type,
-                      contact: contact,
-                    );
+                    Navigator.pop(dialogContext);
 
-                    Navigator.pop(
-                      dialogContext,
-                    );
-
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(
+                    ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text(
-                          '$name added successfully.',
+                          isEdit
+                              ? 'Member updated successfully.'
+                              : '$name added successfully.',
                         ),
                       ),
                     );
                   },
-                  style:
-                      ElevatedButton.styleFrom(
-                    backgroundColor:
-                        const Color(
-                      0xFF22C55E,
-                    ),
-                    foregroundColor:
-                        Colors.black,
-                  ),
-                  child: const Text(
-                    'ADD',
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  // ==============================================================
-  // EDIT MEMBER DIALOG
-  // ==============================================================
-
-  void _showEditMemberDialog(
-    Map<String, String> member,
-  ) {
-    final nameController =
-        TextEditingController(
-      text: member['name'],
-    );
-
-    final contactController =
-        TextEditingController(
-      text: member['contact'],
-    );
-
-    String type =
-        member['type'] ?? 'Regular';
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) {
-        return StatefulBuilder(
-          builder:
-              (context, setDialogState) {
-            return AlertDialog(
-              backgroundColor:
-                  const Color(0xFF252525),
-
-              title: const Text(
-                'Edit Member',
-                style: TextStyle(
-                  color: Colors.white,
-                ),
-              ),
-
-              content: Column(
-                mainAxisSize:
-                    MainAxisSize.min,
-                children: [
-
-                  TextField(
-                    controller:
-                        nameController,
-                    style:
-                        const TextStyle(
-                      color: Colors.white,
-                    ),
-                    decoration:
-                        _inputDecoration(
-                      'Member name',
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _buttonGreen,
+                    foregroundColor: Colors.black,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(6),
                     ),
                   ),
-
-                  const SizedBox(height: 10),
-
-                  TextField(
-                    controller:
-                        contactController,
-                    style:
-                        const TextStyle(
-                      color: Colors.white,
-                    ),
-                    decoration:
-                        _inputDecoration(
-                      'Contact number',
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  DropdownButtonFormField<
-                      String>(
-                    value: type,
-                    dropdownColor:
-                        const Color(
-                      0xFF252525,
-                    ),
-                    style:
-                        const TextStyle(
-                      color: Colors.white,
-                    ),
-                    decoration:
-                        _inputDecoration(
-                      'Member type',
-                    ),
-                    items: const [
-
-                      DropdownMenuItem(
-                        value: 'Regular',
-                        child:
-                            Text('Regular'),
-                      ),
-
-                      DropdownMenuItem(
-                        value: 'Student',
-                        child:
-                            Text('Student'),
-                      ),
-                    ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        setDialogState(() {
-                          type = value;
-                        });
-                      }
-                    },
-                  ),
-                ],
-              ),
-
-              actions: [
-
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(
-                      dialogContext,
-                    );
-                  },
-                  child: const Text(
-                    'CANCEL',
-                    style: TextStyle(
-                      color: Colors.white70,
-                    ),
-                  ),
-                ),
-
-                ElevatedButton(
-                  onPressed: () {
-
-                    final name =
-                        nameController.text
-                            .trim();
-
-                    final contact =
-                        contactController.text
-                            .trim();
-
-                    if (name.isEmpty) {
-                      return;
-                    }
-
-                    GymData.instance.editMember(
-                      member: member,
-                      name: name,
-                      type: type,
-                      contact: contact,
-                    );
-
-                    Navigator.pop(
-                      dialogContext,
-                    );
-
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Member updated successfully.',
-                        ),
-                      ),
-                    );
-                  },
-                  style:
-                      ElevatedButton.styleFrom(
-                    backgroundColor:
-                        const Color(
-                      0xFF22C55E,
-                    ),
-                    foregroundColor:
-                        Colors.black,
-                  ),
-                  child: const Text(
-                    'SAVE',
-                  ),
+                  child: Text(isEdit ? 'SAVE' : 'ADD'),
                 ),
               ],
             );
@@ -793,78 +484,57 @@ class _MembersPageState extends State<MembersPage> {
   // DELETE MEMBER
   // ==============================================================
 
-  void _deleteMember(
-    Map<String, String> member,
-  ) {
+  void _deleteMember(Map<String, String> member) {
     final name = member['name'] ?? 'Member';
 
     showDialog(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          backgroundColor:
-              const Color(0xFF252525),
-
+          backgroundColor: _cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: const BorderSide(color: Colors.white10),
+          ),
           title: const Text(
             'Delete Member',
             style: TextStyle(
               color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
           ),
-
           content: Text(
             'Are you sure you want to delete $name?',
-            style: const TextStyle(
-              color: Colors.white70,
-            ),
+            style: const TextStyle(color: Colors.white70, fontSize: 14),
           ),
-
           actions: [
-
             TextButton(
-              onPressed: () {
-                Navigator.pop(
-                  dialogContext,
-                );
-              },
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text(
                 'CANCEL',
-                style: TextStyle(
-                  color: Colors.white70,
-                ),
+                style: TextStyle(color: Colors.white70),
               ),
             ),
-
             ElevatedButton(
               onPressed: () {
+                GymData.instance.deleteMember(member);
 
-                GymData.instance
-                    .deleteMember(member);
+                Navigator.pop(dialogContext);
 
-                Navigator.pop(
-                  dialogContext,
-                );
-
-                ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      '$name deleted successfully.',
-                    ),
-                  ),
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('$name deleted successfully.')),
                 );
               },
-              style:
-                  ElevatedButton.styleFrom(
-                backgroundColor:
-                    Colors.redAccent,
-                foregroundColor:
-                    Colors.white,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
               ),
-              child: const Text(
-                'DELETE',
-              ),
+              child: const Text('DELETE'),
             ),
           ],
         );
@@ -873,28 +543,23 @@ class _MembersPageState extends State<MembersPage> {
   }
 
   // ==============================================================
-  // INPUT DECORATION
+  // INPUT DECORATION (admin style)
   // ==============================================================
 
-  InputDecoration _inputDecoration(
-    String hint,
-  ) {
+  InputDecoration _inputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(
-        color: Colors.white38,
+      hintStyle: const TextStyle(color: Colors.white54, fontSize: 14),
+      filled: true,
+      fillColor: const Color(0xFF424242),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide.none,
       ),
-      enabledBorder:
-          const OutlineInputBorder(
-        borderSide: BorderSide(
-          color: Colors.white24,
-        ),
-      ),
-      focusedBorder:
-          const OutlineInputBorder(
-        borderSide: BorderSide(
-          color: Colors.green,
-        ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(8),
+        borderSide: const BorderSide(color: _green, width: 1.4),
       ),
     );
   }

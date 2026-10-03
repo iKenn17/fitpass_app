@@ -191,7 +191,7 @@ class SidebarWidget extends StatelessWidget {
           _buildNavItem(
             context,
             Icons.dashboard_customize_outlined,
-            'Overview',
+            'Dashboard',
             isActive: currentRoute == 'Overview',
             onTap: () => Navigator.pushReplacement(
               context,
@@ -418,16 +418,17 @@ class _HeaderWidgetState extends State<HeaderWidget> {
     return Container(
       height: 36,
       constraints: const BoxConstraints(maxWidth: 400),
-      padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
         color: const Color(0xFF2B2B2B),
         borderRadius: BorderRadius.circular(6),
       ),
+      alignment: Alignment.center,
       child: TextField(
         controller: _controller,
         focusNode: _focusNode,
         cursorColor: const Color(0xFF00FF66),
         style: const TextStyle(color: Colors.white, fontSize: 13),
+        textAlignVertical: TextAlignVertical.center,
         onChanged: (value) {
           widget.onSearchChanged?.call(value);
           setState(() {}); // refresh the clear (x) button
@@ -438,8 +439,12 @@ class _HeaderWidgetState extends State<HeaderWidget> {
               (_isLocalSearch ? 'Search...' : 'Search pages...'),
           hintStyle: const TextStyle(color: Colors.grey, fontSize: 13),
           border: InputBorder.none,
+          isCollapsed: true,
           prefixIcon: const Icon(Icons.search, color: Colors.grey, size: 18),
-          prefixIconConstraints: const BoxConstraints(minWidth: 28),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 40,
+            minHeight: 36,
+          ),
           suffixIcon: _controller.text.isEmpty
               ? null
               : InkWell(
@@ -447,9 +452,11 @@ class _HeaderWidgetState extends State<HeaderWidget> {
                   borderRadius: BorderRadius.circular(10),
                   child: const Icon(Icons.close, color: Colors.grey, size: 16),
                 ),
-          suffixIconConstraints: const BoxConstraints(minWidth: 28),
-          isDense: true,
-          contentPadding: const EdgeInsets.symmetric(vertical: 8),
+          suffixIconConstraints: const BoxConstraints(
+            minWidth: 36,
+            minHeight: 36,
+          ),
+          contentPadding: const EdgeInsets.symmetric(vertical: 10),
         ),
       ),
     );

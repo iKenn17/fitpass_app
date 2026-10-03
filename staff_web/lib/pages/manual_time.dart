@@ -10,10 +10,19 @@ class ManualTimePage extends StatefulWidget {
 }
 
 class _ManualTimePageState extends State<ManualTimePage> {
-  final TextEditingController nameController =
-      TextEditingController();
+  final TextEditingController nameController = TextEditingController();
 
   String selectedAction = 'Time In';
+
+  static const Color _cardColor = Color(0xFF2B2B2B);
+  static const Color _green = Color(0xFF00FF66);
+  static const Color _buttonGreen = Color(0xFF28C76F);
+
+  BoxDecoration get _cardDecoration => BoxDecoration(
+    color: _cardColor,
+    borderRadius: BorderRadius.circular(8),
+    border: Border.all(color: Colors.white10),
+  );
 
   @override
   void dispose() {
@@ -28,142 +37,128 @@ class _ManualTimePageState extends State<ManualTimePage> {
       builder: (context, child) {
         final gym = GymData.instance;
 
+        final manualLogs = gym.logs
+            .where((log) => log['method'] == 'Manual')
+            .toList();
+
         return FitpassLayout(
           currentPage: '/manual-time',
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(16),
             child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
+                // ==================================================
+                // TITLE
+                // ==================================================
                 const Text(
-                  'Manual Time In / Out',
+                  'MANUAL TIME IN / OUT',
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
+                    color: _green,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
                   ),
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
 
                 // ==================================================
                 // MANUAL ENTRY
                 // ==================================================
-
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF252525),
-                    borderRadius:
-                        BorderRadius.circular(5),
-                    border: Border.all(
-                      color: const Color(0xFF3A3A3A),
-                    ),
-                  ),
+                  padding: const EdgeInsets.all(16),
+                  decoration: _cardDecoration,
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
                       const Text(
                         'Manual Time Entry',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 10,
                           fontWeight: FontWeight.bold,
+                          fontSize: 14,
                         ),
                       ),
 
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
 
+                      // NAME FIELD
                       TextField(
                         controller: nameController,
+                        cursorColor: _green,
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _recordTime(),
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 8,
+                          fontSize: 14,
                         ),
-                        decoration:
-                            const InputDecoration(
-                          hintText:
-                              'Enter member name',
-                          hintStyle: TextStyle(
-                            color: Colors.white38,
-                            fontSize: 8,
-                          ),
-                          prefixIcon: Icon(
-                            Icons.person,
+                        decoration: InputDecoration(
+                          hintText: 'Enter member name',
+                          hintStyle: const TextStyle(
                             color: Colors.white54,
-                            size: 14,
+                            fontSize: 14,
                           ),
-                          enabledBorder:
-                              OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Colors.white24,
-                            ),
+                          prefixIcon: const Icon(
+                            Icons.person_outline,
+                            color: Colors.white54,
+                            size: 20,
                           ),
-                          focusedBorder:
-                              OutlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xFF22C55E),
+                          filled: true,
+                          fillColor: const Color(0xFF424242),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none,
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(
+                              color: _green,
+                              width: 1.4,
                             ),
                           ),
                         ),
                       ),
 
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 16),
 
+                      // TIME IN / TIME OUT
                       Row(
                         children: [
-
-                          _typeButton(
-                            'Time In',
-                            Icons.login,
-                          ),
-
-                          const SizedBox(width: 6),
-
-                          _typeButton(
-                            'Time Out',
-                            Icons.logout,
-                          ),
+                          _typeButton('Time In', Icons.login),
+                          const SizedBox(width: 12),
+                          _typeButton('Time Out', Icons.logout),
                         ],
                       ),
 
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 16),
 
+                      // RECORD BUTTON
                       SizedBox(
-                        height: 30,
+                        height: 44,
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           onPressed: _recordTime,
-                          icon: const Icon(
-                            Icons.check,
-                            size: 13,
-                          ),
+                          icon: const Icon(Icons.check, size: 18),
                           label: const Text(
                             'RECORD TIME',
                             style: TextStyle(
-                              fontSize: 8,
-                              fontWeight:
-                                  FontWeight.bold,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1,
                             ),
                           ),
-                          style:
-                              ElevatedButton.styleFrom(
-                            backgroundColor:
-                                const Color(0xFF22C55E),
-                            foregroundColor:
-                                Colors.black,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _buttonGreen,
+                            foregroundColor: Colors.black,
                             elevation: 0,
-                            shape:
-                                RoundedRectangleBorder(
-                              borderRadius:
-                                  BorderRadius.circular(
-                                4,
-                              ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
                             ),
                           ),
                         ),
@@ -172,87 +167,79 @@ class _ManualTimePageState extends State<ManualTimePage> {
                   ),
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
 
                 // ==================================================
                 // RECENT ENTRIES
                 // ==================================================
-
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF252525),
-                    borderRadius:
-                        BorderRadius.circular(5),
-                    border: Border.all(
-                      color: const Color(0xFF3A3A3A),
-                    ),
-                  ),
+                  padding: const EdgeInsets.all(16),
+                  decoration: _cardDecoration,
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
                       const Text(
                         'Recent Manual Entries',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 10,
                           fontWeight: FontWeight.bold,
+                          fontSize: 14,
                         ),
                       ),
 
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
 
                       const Row(
                         children: [
-
                           Expanded(
                             flex: 2,
                             child: Text(
                               'Name',
                               style: TextStyle(
-                                color: Colors.white54,
-                                fontSize: 7,
+                                color: Colors.grey,
+                                fontSize: 11,
                               ),
                             ),
                           ),
-
                           Expanded(
                             child: Text(
                               'Action',
                               style: TextStyle(
-                                color: Colors.white54,
-                                fontSize: 7,
+                                color: Colors.grey,
+                                fontSize: 11,
                               ),
                             ),
                           ),
-
                           Expanded(
                             child: Text(
                               'Time',
                               style: TextStyle(
-                                color: Colors.white54,
-                                fontSize: 7,
+                                color: Colors.grey,
+                                fontSize: 11,
                               ),
                             ),
                           ),
                         ],
                       ),
 
-                      const SizedBox(height: 3),
+                      const Divider(color: Colors.white10),
 
-                      ...gym.logs
-                          .where(
-                            (log) =>
-                                log['method'] ==
-                                'Manual',
-                          )
-                          .map(
-                            (log) =>
-                                _recordRow(log),
+                      if (manualLogs.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 24),
+                          child: Center(
+                            child: Text(
+                              'No manual entries yet.',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                            ),
                           ),
+                        ),
+
+                      ...manualLogs.map(_recordRow),
                     ],
                   ),
                 ),
@@ -268,60 +255,42 @@ class _ManualTimePageState extends State<ManualTimePage> {
   // TIME IN / OUT BUTTON
   // ==============================================================
 
-  Widget _typeButton(
-    String title,
-    IconData icon,
-  ) {
-    final selected =
-        selectedAction == title;
+  Widget _typeButton(String title, IconData icon) {
+    final selected = selectedAction == title;
 
     return Expanded(
       child: GestureDetector(
-        onTap: () {
-          setState(() {
-            selectedAction = title;
-          });
-        },
-        child: Container(
-          height: 30,
-          decoration: BoxDecoration(
-            color: selected
-                ? const Color(0xFF22C55E)
-                : const Color(0xFF252525),
-            borderRadius:
-                BorderRadius.circular(4),
-            border: Border.all(
-              color: selected
-                  ? const Color(0xFF22C55E)
-                  : Colors.white12,
+        onTap: () => setState(() => selectedAction = title),
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: Container(
+            height: 44,
+            decoration: BoxDecoration(
+              color: selected ? _buttonGreen : const Color(0xFF424242),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: selected ? _buttonGreen : Colors.white10,
+              ),
             ),
-          ),
-          child: Row(
-            mainAxisAlignment:
-                MainAxisAlignment.center,
-            children: [
-
-              Icon(
-                icon,
-                size: 12,
-                color: selected
-                    ? Colors.black
-                    : Colors.white70,
-              ),
-
-              const SizedBox(width: 5),
-
-              Text(
-                title,
-                style: TextStyle(
-                  color: selected
-                      ? Colors.black
-                      : Colors.white70,
-                  fontSize: 7,
-                  fontWeight: FontWeight.bold,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 18,
+                  color: selected ? Colors.black : Colors.white70,
                 ),
-              ),
-            ],
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: selected ? Colors.black : Colors.white70,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -333,41 +302,23 @@ class _ManualTimePageState extends State<ManualTimePage> {
   // ==============================================================
 
   void _recordTime() {
-    final name =
-        nameController.text.trim();
+    final name = nameController.text.trim();
 
     if (name.isEmpty) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Please enter a member name.',
-          ),
-        ),
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter a member name.')),
       );
-
       return;
     }
 
-    final action =
-        selectedAction == 'Time In'
-            ? 'Check In'
-            : 'Check Out';
+    final action = selectedAction == 'Time In' ? 'Check In' : 'Check Out';
 
-    GymData.instance.manualTime(
-      name: name,
-      action: action,
-    );
+    GymData.instance.manualTime(name: name, action: action);
 
     nameController.clear();
 
-    ScaffoldMessenger.of(context)
-        .showSnackBar(
-      SnackBar(
-        content: Text(
-          '$selectedAction recorded for $name.',
-        ),
-      ),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('$selectedAction recorded for $name.')),
     );
   }
 
@@ -375,57 +326,38 @@ class _ManualTimePageState extends State<ManualTimePage> {
   // RECORD ROW
   // ==============================================================
 
-  Widget _recordRow(
-    Map<String, String> record,
-  ) {
-    final isTimeIn =
-        record['action'] == 'Check In';
+  Widget _recordRow(Map<String, String> record) {
+    final isTimeIn = record['action'] == 'Check In';
 
     return Container(
-      padding:
-          const EdgeInsets.symmetric(
-        vertical: 8,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.white10,
-          ),
-        ),
+        border: Border(bottom: BorderSide(color: Colors.white10)),
       ),
       child: Row(
         children: [
-
           Expanded(
             flex: 2,
             child: Text(
               record['name'] ?? '',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 7,
-              ),
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white, fontSize: 12),
             ),
           ),
-
           Expanded(
             child: Text(
               record['action'] ?? '',
               style: TextStyle(
-                color: isTimeIn
-                    ? Colors.greenAccent
-                    : Colors.orangeAccent,
-                fontSize: 7,
+                color: isTimeIn ? _green : Colors.orangeAccent,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
-
           Expanded(
             child: Text(
               record['time'] ?? '',
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 7,
-              ),
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
           ),
         ],

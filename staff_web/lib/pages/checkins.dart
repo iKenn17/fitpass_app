@@ -12,6 +12,23 @@ class CheckInsPage extends StatefulWidget {
 class _CheckInsPageState extends State<CheckInsPage> {
   String selectedFilter = 'All';
 
+  static const List<String> _filters = [
+    'All',
+    'QR Code',
+    'Manual',
+    'Currently In',
+  ];
+
+  static const Color _cardColor = Color(0xFF2B2B2B);
+  static const Color _green = Color(0xFF00FF66);
+  static const Color _buttonGreen = Color(0xFF28C76F);
+
+  BoxDecoration get _cardDecoration => BoxDecoration(
+    color: _cardColor,
+    borderRadius: BorderRadius.circular(8),
+    border: Border.all(color: Colors.white10),
+  );
+
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
@@ -19,228 +36,179 @@ class _CheckInsPageState extends State<CheckInsPage> {
       builder: (context, child) {
         final gym = GymData.instance;
 
-        List<Map<String, String>> filteredLogs =
-            gym.logs.where((log) {
-          if (selectedFilter == 'All') {
-            return true;
+        final List<Map<String, String>> filteredLogs = gym.logs.where((log) {
+          switch (selectedFilter) {
+            case 'QR Code':
+              return log['method'] == 'QR Code';
+            case 'Manual':
+              return log['method'] == 'Manual';
+            case 'Currently In':
+              return log['action'] == 'Check In';
+            default:
+              return true;
           }
-
-          if (selectedFilter == 'QR Code') {
-            return log['method'] == 'QR Code';
-          }
-
-          if (selectedFilter == 'Manual') {
-            return log['method'] == 'Manual';
-          }
-
-          if (selectedFilter == 'Currently In') {
-            return log['action'] == 'Check In';
-          }
-
-          return true;
         }).toList();
 
         return FitpassLayout(
           currentPage: '/checkins',
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 // ==================================================
                 // TITLE
                 // ==================================================
-
                 const Text(
-                  'Check-ins',
+                  'CHECK-INS',
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
+                    color: _green,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
                   ),
                 ),
 
-                const SizedBox(height: 10),
-
-                // ==================================================
-                // FILTERS
-                // ==================================================
-
-                Row(
-                  children: [
-                    _filterButton('All'),
-                    const SizedBox(width: 5),
-                    _filterButton('QR Code'),
-                    const SizedBox(width: 5),
-                    _filterButton('Manual'),
-                    const SizedBox(width: 5),
-                    _filterButton('Currently In'),
-                  ],
-                ),
-
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
 
                 // ==================================================
                 // SUMMARY CARDS
                 // ==================================================
-
                 Row(
                   children: [
-
-                    _summaryCard(
-                      'Check-ins',
-                      gym.todayCheckIns.toString(),
-                      Icons.login,
+                    Expanded(
+                      child: _summaryCard(
+                        'Check-ins',
+                        gym.todayCheckIns.toString(),
+                        Icons.login,
+                      ),
                     ),
-
-                    _summaryCard(
-                      'Check-outs',
-                      gym.todayCheckOuts.toString(),
-                      Icons.logout,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _summaryCard(
+                        'Check-outs',
+                        gym.todayCheckOuts.toString(),
+                        Icons.logout,
+                      ),
                     ),
-
-                    _summaryCard(
-                      'Currently In',
-                      (gym.todayCheckIns -
-                              gym.todayCheckOuts)
-                          .toString(),
-                      Icons.fitness_center,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _summaryCard(
+                        'Currently In',
+                        (gym.todayCheckIns - gym.todayCheckOuts).toString(),
+                        Icons.fitness_center,
+                      ),
                     ),
                   ],
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
 
                 // ==================================================
-                // ACTION BUTTONS
+                // FILTERS + ACTION BUTTONS
                 // ==================================================
-
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-
+                    ..._filters.map(_filterButton),
+                    const SizedBox(width: 16),
                     _actionButton(
                       'CHECK IN',
                       Icons.login,
-                      () {
-                        _showTimeDialog(
-                          isCheckIn: true,
-                        );
-                      },
+                      () => _showTimeDialog(isCheckIn: true),
                     ),
-
-                    const SizedBox(width: 6),
-
                     _actionButton(
                       'CHECK OUT',
                       Icons.logout,
-                      () {
-                        _showTimeDialog(
-                          isCheckIn: false,
-                        );
-                      },
+                      () => _showTimeDialog(isCheckIn: false),
                     ),
                   ],
                 ),
 
-                const SizedBox(height: 10),
+                const SizedBox(height: 16),
 
                 // ==================================================
                 // LOG TABLE
                 // ==================================================
-
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF252525),
-                    borderRadius:
-                        BorderRadius.circular(5),
-                    border: Border.all(
-                      color: const Color(0xFF3A3A3A),
-                    ),
-                  ),
+                  padding: const EdgeInsets.all(16),
+                  decoration: _cardDecoration,
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-
                       const Text(
                         "Today's Check-in Logs",
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 10,
                           fontWeight: FontWeight.bold,
+                          fontSize: 14,
                         ),
                       ),
 
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
 
                       const Row(
                         children: [
-
                           Expanded(
                             flex: 2,
                             child: Text(
                               'Name',
                               style: TextStyle(
-                                color: Colors.white54,
-                                fontSize: 7,
+                                color: Colors.grey,
+                                fontSize: 11,
                               ),
                             ),
                           ),
-
                           Expanded(
                             child: Text(
                               'Action',
                               style: TextStyle(
-                                color: Colors.white54,
-                                fontSize: 7,
+                                color: Colors.grey,
+                                fontSize: 11,
                               ),
                             ),
                           ),
-
                           Expanded(
                             child: Text(
                               'Method',
                               style: TextStyle(
-                                color: Colors.white54,
-                                fontSize: 7,
+                                color: Colors.grey,
+                                fontSize: 11,
                               ),
                             ),
                           ),
-
                           Expanded(
                             child: Text(
                               'Time',
                               style: TextStyle(
-                                color: Colors.white54,
-                                fontSize: 7,
+                                color: Colors.grey,
+                                fontSize: 11,
                               ),
                             ),
                           ),
                         ],
                       ),
 
-                      const SizedBox(height: 3),
+                      const Divider(color: Colors.white10),
 
                       if (filteredLogs.isEmpty)
                         const Padding(
-                          padding: EdgeInsets.all(15),
+                          padding: EdgeInsets.symmetric(vertical: 24),
                           child: Center(
                             child: Text(
                               'No logs found.',
                               style: TextStyle(
-                                color: Colors.white54,
-                                fontSize: 8,
+                                color: Colors.grey,
+                                fontSize: 12,
                               ),
                             ),
                           ),
                         ),
 
-                      ...filteredLogs.map(
-                        (log) => _logRow(log),
-                      ),
+                      ...filteredLogs.map(_logRow),
                     ],
                   ),
                 ),
@@ -260,38 +228,22 @@ class _CheckInsPageState extends State<CheckInsPage> {
     final selected = selectedFilter == title;
 
     return SizedBox(
-      height: 28,
+      height: 32,
       child: ElevatedButton(
-        onPressed: () {
-          setState(() {
-            selectedFilter = title;
-          });
-        },
+        onPressed: () => setState(() => selectedFilter = title),
         style: ElevatedButton.styleFrom(
-          backgroundColor: selected
-              ? const Color(0xFF22C55E)
-              : const Color(0xFF252525),
-          foregroundColor:
-              selected ? Colors.black : Colors.white70,
+          backgroundColor: selected ? _buttonGreen : _cardColor,
+          foregroundColor: selected ? Colors.black : Colors.white70,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 10,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(4),
-            side: BorderSide(
-              color: selected
-                  ? const Color(0xFF22C55E)
-                  : Colors.white12,
-            ),
+            borderRadius: BorderRadius.circular(6),
+            side: BorderSide(color: selected ? _buttonGreen : Colors.white10),
           ),
         ),
         child: Text(
           title,
-          style: const TextStyle(
-            fontSize: 7,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -301,63 +253,42 @@ class _CheckInsPageState extends State<CheckInsPage> {
   // SUMMARY CARD
   // ==============================================================
 
-  Widget _summaryCard(
-    String title,
-    String value,
-    IconData icon,
-  ) {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.only(right: 6),
-        height: 65,
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: const Color(0xFF252525),
-          borderRadius: BorderRadius.circular(5),
-          border: Border.all(
-            color: const Color(0xFF3A3A3A),
+  Widget _summaryCard(String title, String value, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: _cardDecoration,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFF294A31),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: _green, size: 20),
           ),
-        ),
-        child: Row(
-          children: [
 
-            Icon(
-              icon,
-              color: const Color(0xFF22C55E),
-              size: 17,
-            ),
+          const SizedBox(width: 14),
 
-            const SizedBox(width: 8),
-
-            Column(
-              mainAxisAlignment:
-                  MainAxisAlignment.center,
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-              children: [
-
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 6,
-                  ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
                 ),
-
-                const SizedBox(height: 3),
-
-                Text(
-                  value,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -366,37 +297,26 @@ class _CheckInsPageState extends State<CheckInsPage> {
   // ACTION BUTTON
   // ==============================================================
 
-  Widget _actionButton(
-    String title,
-    IconData icon,
-    VoidCallback onPressed,
-  ) {
+  Widget _actionButton(String title, IconData icon, VoidCallback onPressed) {
     return SizedBox(
-      height: 28,
+      height: 32,
       child: ElevatedButton.icon(
         onPressed: onPressed,
-        icon: Icon(
-          icon,
-          size: 12,
-        ),
+        icon: Icon(icon, size: 16),
         label: Text(
           title,
           style: const TextStyle(
-            fontSize: 7,
+            fontSize: 12,
             fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
           ),
         ),
         style: ElevatedButton.styleFrom(
-          backgroundColor:
-              const Color(0xFF22C55E),
+          backgroundColor: _buttonGreen,
           foregroundColor: Colors.black,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 10,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(4),
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         ),
       ),
     );
@@ -410,60 +330,40 @@ class _CheckInsPageState extends State<CheckInsPage> {
     final isCheckIn = log['action'] == 'Check In';
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        vertical: 8,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.white10,
-          ),
-        ),
+        border: Border(bottom: BorderSide(color: Colors.white10)),
       ),
       child: Row(
         children: [
-
           Expanded(
             flex: 2,
             child: Text(
               log['name'] ?? '',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 7,
-              ),
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white, fontSize: 12),
             ),
           ),
-
           Expanded(
             child: Text(
               log['action'] ?? '',
               style: TextStyle(
-                color: isCheckIn
-                    ? Colors.greenAccent
-                    : Colors.orangeAccent,
-                fontSize: 7,
-                fontWeight: FontWeight.bold,
+                color: isCheckIn ? _green : Colors.orangeAccent,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
-
           Expanded(
             child: Text(
               log['method'] ?? '',
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 7,
-              ),
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
           ),
-
           Expanded(
             child: Text(
               log['time'] ?? '',
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 7,
-              ),
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
             ),
           ),
         ],
@@ -475,88 +375,76 @@ class _CheckInsPageState extends State<CheckInsPage> {
   // CHECK IN / CHECK OUT DIALOG
   // ==============================================================
 
-  void _showTimeDialog({
-    required bool isCheckIn,
-  }) {
+  void _showTimeDialog({required bool isCheckIn}) {
     final controller = TextEditingController();
 
     showDialog(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF252525),
-
+          backgroundColor: _cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: const BorderSide(color: Colors.white10),
+          ),
           title: Text(
             isCheckIn ? 'Check In' : 'Check Out',
             style: const TextStyle(
               color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
             ),
           ),
-
-          content: TextField(
-            controller: controller,
-            style: const TextStyle(
-              color: Colors.white,
-            ),
-            decoration: InputDecoration(
-              hintText: 'Enter member name',
-              hintStyle: const TextStyle(
-                color: Colors.white38,
-              ),
-              enabledBorder:
-                  const OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: Colors.white24,
+          content: SizedBox(
+            width: 320,
+            child: TextField(
+              controller: controller,
+              autofocus: true,
+              cursorColor: _green,
+              style: const TextStyle(color: Colors.white, fontSize: 14),
+              decoration: InputDecoration(
+                hintText: 'Enter member name',
+                hintStyle: const TextStyle(color: Colors.white54, fontSize: 14),
+                filled: true,
+                fillColor: const Color(0xFF424242),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
                 ),
-              ),
-              focusedBorder:
-                  const OutlineInputBorder(
-                borderSide: BorderSide(
-                  color: Color(0xFF22C55E),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: _green, width: 1.4),
                 ),
               ),
             ),
           ),
-
           actions: [
-
             TextButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
-              },
+              onPressed: () => Navigator.pop(dialogContext),
               child: const Text(
                 'CANCEL',
-                style: TextStyle(
-                  color: Colors.white70,
-                ),
+                style: TextStyle(color: Colors.white70),
               ),
             ),
-
             ElevatedButton(
               onPressed: () {
-                final name =
-                    controller.text.trim();
+                final name = controller.text.trim();
 
-                if (name.isEmpty) {
-                  return;
-                }
+                if (name.isEmpty) return;
 
                 if (isCheckIn) {
-                  GymData.instance.checkIn(
-                    name: name,
-                    method: 'Manual',
-                  );
+                  GymData.instance.checkIn(name: name, method: 'Manual');
                 } else {
-                  GymData.instance.checkOut(
-                    name: name,
-                    method: 'Manual',
-                  );
+                  GymData.instance.checkOut(name: name, method: 'Manual');
                 }
 
                 Navigator.pop(dialogContext);
 
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(
+                ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
                       isCheckIn
@@ -567,15 +455,14 @@ class _CheckInsPageState extends State<CheckInsPage> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    const Color(0xFF22C55E),
+                backgroundColor: _buttonGreen,
                 foregroundColor: Colors.black,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
               ),
-              child: Text(
-                isCheckIn
-                    ? 'CHECK IN'
-                    : 'CHECK OUT',
-              ),
+              child: Text(isCheckIn ? 'CHECK IN' : 'CHECK OUT'),
             ),
           ],
         );

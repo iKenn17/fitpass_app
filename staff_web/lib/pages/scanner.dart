@@ -15,6 +15,16 @@ class ScannerPage extends StatefulWidget {
 class _ScannerPageState extends State<ScannerPage> {
   late MobileScannerController controller;
 
+  static const Color _cardColor = Color(0xFF2B2B2B);
+  static const Color _green = Color(0xFF00FF66);
+  static const Color _buttonGreen = Color(0xFF28C76F);
+
+  BoxDecoration get _cardDecoration => BoxDecoration(
+    color: _cardColor,
+    borderRadius: BorderRadius.circular(8),
+    border: Border.all(color: Colors.white10),
+  );
+
   // ------------------------------------------------------------
   // SCANNER STATE
   // ------------------------------------------------------------
@@ -224,7 +234,7 @@ class _ScannerPageState extends State<ScannerPage> {
           message,
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
-        backgroundColor: isError ? Colors.redAccent : const Color(0xFF16C84E),
+        backgroundColor: isError ? Colors.redAccent : _buttonGreen,
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -236,92 +246,122 @@ class _ScannerPageState extends State<ScannerPage> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isTimeIn = nextAction == 'time_in';
-
     return FitpassLayout(
-      currentPage: 'scanner',
+      currentPage: '/scanner',
       child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(28, 20, 28, 30),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               'QR CHECK-IN SCANNER',
               style: TextStyle(
-                color: Color(0xFF16C84E),
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
+                color: _green,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1.2,
               ),
             ),
 
-            const SizedBox(height: 10),
+            const SizedBox(height: 16),
 
-            Center(
-              child: Column(
-                children: [
-                  _buildScannerBox(),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final bool wide = constraints.maxWidth >= 900;
 
-                  const SizedBox(height: 14),
+                if (wide) {
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: _buildScannerCard()),
+                      const SizedBox(width: 16),
+                      Expanded(child: _buildMemberCard()),
+                    ],
+                  );
+                }
 
-                  _buildMemberCard(),
-
-                  const SizedBox(height: 16),
-
-                  if (memberFound)
-                    SizedBox(
-                      width: 394,
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: ElevatedButton.icon(
-                              onPressed: isSaving ? null : checkInMember,
-                              icon: Icon(
-                                isTimeIn ? Icons.login : Icons.logout,
-                                size: 19,
-                              ),
-                              label: Text(isTimeIn ? 'CHECK IN' : 'CHECK OUT'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: isTimeIn
-                                    ? const Color(0xFF16C84E)
-                                    : Colors.orangeAccent,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 15,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: startScanning,
-                              icon: const Icon(Icons.qr_code_scanner, size: 19),
-                              label: const Text('SCAN AGAIN'),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: const Color(0xFF16C84E),
-                                side: const BorderSide(
-                                  color: Color(0xFF16C84E),
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 15,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
+                return Column(
+                  children: [
+                    _buildScannerCard(),
+                    const SizedBox(height: 16),
+                    _buildMemberCard(),
+                  ],
+                );
+              },
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // SCANNER CARD
+  // ============================================================
+
+  Widget _buildScannerCard() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: _cardDecoration,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text(
+                'Camera',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+              const Spacer(),
+              _statusChip(),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          _buildScannerBox(),
+        ],
+      ),
+    );
+  }
+
+  Widget _statusChip() {
+    final String text = isScanning
+        ? 'Ready to scan'
+        : memberFound
+        ? 'Member found'
+        : 'Looking up...';
+
+    final Color color = isScanning || memberFound ? _green : Colors.amber;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF1E1E1E),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -332,12 +372,12 @@ class _ScannerPageState extends State<ScannerPage> {
 
   Widget _buildScannerBox() {
     return Container(
-      width: 394,
-      height: 300,
+      width: double.infinity,
+      height: 340,
       decoration: BoxDecoration(
-        color: const Color(0xFF252525),
-        borderRadius: BorderRadius.circular(27),
-        border: Border.all(color: const Color(0xFF0FAE36), width: 1.2),
+        color: const Color(0xFF1B1B1B),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white10),
       ),
       clipBehavior: Clip.antiAlias,
       child: Stack(
@@ -350,42 +390,35 @@ class _ScannerPageState extends State<ScannerPage> {
               ),
             )
           else
-            Container(
-              color: const Color(0xFF252525),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.check_circle,
-                      color: Color(0xFF16C84E),
-                      size: 70,
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.check_circle, color: _green, size: 64),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'QR CODE SCANNED',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'QR CODE SCANNED',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
+                  ),
+                  const SizedBox(height: 6),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      scannedCode,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white60,
+                        fontSize: 12,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Text(
-                        scannedCode,
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white60,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
 
@@ -395,7 +428,7 @@ class _ScannerPageState extends State<ScannerPage> {
             ),
 
             const Positioned(
-              top: 18,
+              top: 16,
               left: 0,
               right: 0,
               child: Center(
@@ -405,19 +438,20 @@ class _ScannerPageState extends State<ScannerPage> {
                     color: Colors.white,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
+                    letterSpacing: 1,
                   ),
                 ),
               ),
             ),
 
             const Positioned(
-              bottom: 18,
+              bottom: 16,
               left: 0,
               right: 0,
               child: Center(
                 child: Text(
                   'Place the QR code inside the frame',
-                  style: TextStyle(color: Colors.white70, fontSize: 11),
+                  style: TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ),
             ),
@@ -432,34 +466,44 @@ class _ScannerPageState extends State<ScannerPage> {
   // ============================================================
 
   Widget _buildMemberCard() {
+    final bool isTimeIn = nextAction == 'time_in';
+
     return Container(
-      width: 394,
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: const Color(0xFF252525),
-        borderRadius: BorderRadius.circular(27),
-        border: Border.all(color: const Color(0xFF0FAE36), width: 1.2),
-      ),
+      padding: const EdgeInsets.all(16),
+      decoration: _cardDecoration,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Text(
+            'Member Details',
+            style: TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
           Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 52,
+                height: 52,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFF444444),
-                  border: Border.all(color: const Color(0xFF777777)),
+                  color: memberFound
+                      ? const Color(0xFF294A31)
+                      : const Color(0xFF424242),
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.person,
-                  color: Colors.white70,
-                  size: 29,
+                  color: memberFound ? _green : Colors.white54,
+                  size: 28,
                 ),
               ),
 
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
 
               Expanded(
                 child: Column(
@@ -467,19 +511,17 @@ class _ScannerPageState extends State<ScannerPage> {
                   children: [
                     Text(
                       memberName,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '$memberType - ID $memberId',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 10,
-                      ),
+                      '$memberType  •  ID $memberId',
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
                     ),
                   ],
                 ),
@@ -487,18 +529,14 @@ class _ScannerPageState extends State<ScannerPage> {
             ],
           ),
 
-          const SizedBox(height: 17),
+          const SizedBox(height: 16),
 
           Row(
             children: [
               Expanded(child: _infoBox('TIME', memberTime)),
-              const SizedBox(width: 30),
+              const SizedBox(width: 12),
               Expanded(
-                child: _infoBox(
-                  'METHOD',
-                  memberMethod,
-                  valueColor: const Color(0xFF00D639),
-                ),
+                child: _infoBox('METHOD', memberMethod, valueColor: _green),
               ),
             ],
           ),
@@ -508,16 +546,96 @@ class _ScannerPageState extends State<ScannerPage> {
           Row(
             children: [
               Expanded(
-                child: _infoBox(
-                  'MEMBERSHIP',
-                  memberStatus,
-                  valueColor: const Color(0xFF00D639),
-                ),
+                child: _infoBox('MEMBERSHIP', memberStatus, valueColor: _green),
               ),
-              const SizedBox(width: 30),
-              Expanded(child: _infoBox('VISIT THIS MONTH', memberVisits)),
+              const SizedBox(width: 12),
+              Expanded(child: _infoBox('VISITS THIS MONTH', memberVisits)),
             ],
           ),
+
+          const SizedBox(height: 16),
+
+          if (memberFound)
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 44,
+                    child: ElevatedButton.icon(
+                      onPressed: isSaving ? null : checkInMember,
+                      icon: isSaving
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.black,
+                              ),
+                            )
+                          : Icon(
+                              isTimeIn ? Icons.login : Icons.logout,
+                              size: 18,
+                            ),
+                      label: Text(
+                        isTimeIn ? 'CHECK IN' : 'CHECK OUT',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isTimeIn
+                            ? _buttonGreen
+                            : Colors.orangeAccent,
+                        foregroundColor: Colors.black,
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 12),
+
+                Expanded(
+                  child: SizedBox(
+                    height: 44,
+                    child: OutlinedButton.icon(
+                      onPressed: startScanning,
+                      icon: const Icon(Icons.qr_code_scanner, size: 18),
+                      label: const Text(
+                        'SCAN AGAIN',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: _buttonGreen,
+                        side: const BorderSide(color: _buttonGreen),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          else
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  'Scan a member QR code to see their details.',
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -529,26 +647,31 @@ class _ScannerPageState extends State<ScannerPage> {
     Color valueColor = Colors.white,
   }) {
     return Container(
-      height: 64,
-      padding: const EdgeInsets.fromLTRB(12, 9, 12, 8),
+      height: 68,
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF292929),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: const Color(0xFF444444)),
+        color: const Color(0xFF1E1E1E),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white10),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(color: Colors.white70, fontSize: 8),
+            style: const TextStyle(
+              color: Colors.grey,
+              fontSize: 10,
+              letterSpacing: 0.5,
+            ),
           ),
           const Spacer(),
           Text(
             value,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               color: valueColor,
-              fontSize: 13,
+              fontSize: 15,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -566,12 +689,12 @@ class ScannerOverlayPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final Paint paint = Paint()
-      ..color = const Color(0xFF35E65E)
+      ..color = const Color(0xFF00FF66)
       ..strokeWidth = 4
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
-    const double boxSize = 180;
+    const double boxSize = 200;
 
     final double left = (size.width - boxSize) / 2;
     final double top = (size.height - boxSize) / 2;
@@ -604,7 +727,5 @@ class ScannerOverlayPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) {
-    return false;
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

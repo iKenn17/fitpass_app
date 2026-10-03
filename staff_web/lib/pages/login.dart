@@ -9,22 +9,95 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   final TextEditingController usernameController = TextEditingController();
-
   final TextEditingController passwordController = TextEditingController();
 
-  bool hidePassword = true;
+  bool _obscurePassword = true;
   bool isLoading = false;
+
+  // Entrance animation (logo scale/fade in, text fades up shortly after)
+  late final AnimationController _entranceController;
+  late final Animation<double> _logoFade;
+  late final Animation<double> _logoScale;
+  late final Animation<double> _textFade;
+  late final Animation<Offset> _textSlide;
+
+  // Looping ambient animation (gentle float + glow breathing)
+  late final AnimationController _ambientController;
+  late final Animation<double> _floatOffset;
+  late final Animation<double> _glowPulse;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _entranceController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1100),
+    );
+    _logoFade = CurvedAnimation(
+      parent: _entranceController,
+      curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+    );
+    _logoScale = Tween<double>(begin: 0.82, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _entranceController,
+        curve: const Interval(0.0, 0.7, curve: Curves.easeOutBack),
+      ),
+    );
+    _textFade = CurvedAnimation(
+      parent: _entranceController,
+      curve: const Interval(0.45, 1.0, curve: Curves.easeOut),
+    );
+    _textSlide = Tween<Offset>(begin: const Offset(0, 0.25), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _entranceController,
+            curve: const Interval(0.45, 1.0, curve: Curves.easeOut),
+          ),
+        );
+    _entranceController.forward();
+
+    _ambientController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 3200),
+    )..repeat(reverse: true);
+    _floatOffset = Tween<double>(begin: -4.0, end: 4.0).animate(
+      CurvedAnimation(parent: _ambientController, curve: Curves.easeInOut),
+    );
+    _glowPulse = Tween<double>(begin: 0.25, end: 0.45).animate(
+      CurvedAnimation(parent: _ambientController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _entranceController.dispose();
+    _ambientController.dispose();
+    usernameController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   void _showError(String message) {
     if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.redAccent),
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+      ),
     );
   }
 
   Future<void> login() async {
+    if (isLoading) return;
+
     final email = usernameController.text.trim();
     final password = passwordController.text.trim();
 
@@ -82,151 +155,176 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF292929),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
-          final height = constraints.maxHeight;
-
-          // Left side is approximately 35% of the screen.
-          final leftWidth = width * 0.355;
-
-          return Row(
-            children: [
-              // ==================================================
-              // LEFT PANEL
-              // ==================================================
-              SizedBox(
-                width: leftWidth,
-                height: height,
-                child: Container(
-                  color: const Color(0xFF242424),
-
-                  child: Center(child: _buildBranding(leftWidth)),
+      backgroundColor: const Color(0xFF1B1B1B),
+      body: Row(
+        children: [
+          // ==================================================
+          // LEFT PANEL (admin design)
+          // ==================================================
+          Expanded(
+            flex: 1,
+            child: Container(
+              decoration: const BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment(0, -0.1),
+                  radius: 1.1,
+                  colors: [Color(0xFF2A2A2A), Color(0xFF1C1C1C)],
                 ),
               ),
-
-              // ==================================================
-              // RIGHT PANEL
-              // ==================================================
-              Expanded(
-                child: Container(
-                  height: height,
-                  color: const Color(0xFF292929),
-
-                  child: Stack(
-                    children: [
-                      // STAFF LOGIN header (top center)
-                      Align(
-                        alignment: Alignment.topCenter,
-                        child: Padding(
-                          padding: const EdgeInsets.only(top: 48),
-                          child: _buildStaffHeader(),
-                        ),
-                      ),
-
-                      // Form (center)
-                      Center(
-                        child: SingleChildScrollView(child: _buildLoginForm()),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  // ============================================================
-  // FITPASS BRANDING
-  // ============================================================
-
-  Widget _buildBranding(double leftWidth) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        // --------------------------------------------------------
-        // LOGO IMAGE
-        // --------------------------------------------------------
-        Image.asset(
-          'assets/fitpass_logo.png',
-          width: leftWidth * 0.43,
-          height: 150,
-          fit: BoxFit.contain,
-          filterQuality: FilterQuality.high,
-
-          errorBuilder: (context, error, stackTrace) {
-            return Container(
-              width: 130,
-              height: 130,
-              alignment: Alignment.center,
-              child: const Icon(
-                Icons.fitness_center,
-                color: Colors.white,
-                size: 70,
-              ),
-            );
-          },
-        ),
-
-        const SizedBox(width: 5),
-
-        // --------------------------------------------------------
-        // FITPASS TEXT
-        // --------------------------------------------------------
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // FITPASS
-            RichText(
-              text: const TextSpan(
+              child: Stack(
                 children: [
-                  // FIT
-                  TextSpan(
-                    text: 'FIT',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 29,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -1.2,
-                    ),
-                  ),
+                  Center(child: _buildBranding()),
 
-                  // PASS
-                  TextSpan(
-                    text: 'PASS',
-                    style: TextStyle(
-                      color: Color(0xFF22C55E),
-                      fontSize: 29,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -1.2,
+                  // Bottom Left Label
+                  const Positioned(
+                    left: 32,
+                    bottom: 28,
+                    child: Text(
+                      'STAFF',
+                      style: TextStyle(
+                        color: Colors.white30,
+                        fontSize: 14,
+                        letterSpacing: 2,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
+          ),
 
-            // GYM
-            const Padding(
-              padding: EdgeInsets.only(left: 74, top: 0),
-              child: Text(
-                'GYM',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.5,
+          // ==================================================
+          // RIGHT PANEL
+          // ==================================================
+          Expanded(
+            flex: 2,
+            child: Container(
+              color: const Color(0xFF2B2B2B),
+              child: Stack(
+                children: [
+                  // STAFF LOGIN header (top center)
+                  Align(
+                    alignment: Alignment.topCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 48),
+                      child: _buildStaffHeader(),
+                    ),
+                  ),
+
+                  // Form (center)
+                  Center(
+                    child: SingleChildScrollView(child: _buildLoginForm()),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // FITPASS BRANDING (admin design)
+  // ============================================================
+
+  Widget _buildBranding() {
+    return AnimatedBuilder(
+      animation: Listenable.merge([_entranceController, _ambientController]),
+      builder: (context, child) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Logo: fade/scale entrance + gentle float + breathing glow
+            Transform.translate(
+              offset: Offset(0, _floatOffset.value),
+              child: Opacity(
+                opacity: _logoFade.value,
+                child: Transform.scale(
+                  scale: _logoScale.value,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(
+                            0xFF00FF66,
+                          ).withValues(alpha: _glowPulse.value),
+                          blurRadius: 55,
+                          spreadRadius: 4,
+                        ),
+                      ],
+                    ),
+                    child: Image.asset(
+                      'assets/fitpass_logo.png',
+                      height: 170,
+                      filterQuality: FilterQuality.high,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.fitness_center,
+                          size: 90,
+                          color: Color(0xFF00FF66),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // FITPASS GYM wordmark
+            Opacity(
+              opacity: _textFade.value,
+              child: Transform.translate(
+                offset: Offset(0, _textSlide.value.dy * 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    RichText(
+                      text: const TextSpan(
+                        children: [
+                          TextSpan(
+                            text: 'FIT',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'PASS',
+                            style: TextStyle(
+                              color: Color(0xFF00FF66),
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      'GYM',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 3,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ],
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -294,164 +392,181 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   // ============================================================
-  // LOGIN FORM
+  // LOGIN FORM (admin design)
   // ============================================================
 
   Widget _buildLoginForm() {
-    return SizedBox(
-      width: 315,
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 380),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // ======================================================
-          // ADMINISTRATOR
-          // ======================================================
-          SizedBox(
-            width: 315,
-            height: 36,
-
-            child: TextField(
-              controller: usernameController,
-
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-
-              cursorColor: const Color(0xFF22C55E),
-
-              decoration: InputDecoration(
-                hintText: 'Administrator',
-
-                hintStyle: const TextStyle(
-                  color: Color.fromRGBO(255, 254, 254, 0.493),
-                  fontSize: 14,
-                ),
-
-                filled: true,
-
-                fillColor: const Color(0xFF555555),
-
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 11,
-                  vertical: 0,
-                ),
-
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
-                  borderSide: BorderSide.none,
-                ),
-
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
-                  borderSide: BorderSide.none,
-                ),
-
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF22C55E),
-                    width: 1,
-                  ),
+          // Email Input
+          TextField(
+            controller: usernameController,
+            enabled: !isLoading,
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next,
+            cursorColor: const Color(0xFF00FF66),
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+            decoration: InputDecoration(
+              hintText: 'Email',
+              hintStyle: const TextStyle(color: Colors.white54, fontSize: 14),
+              filled: true,
+              fillColor: const Color(0xFF424242),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(
+                  color: Color(0xFF00FF66),
+                  width: 1.4,
                 ),
               ),
             ),
           ),
 
-          // ======================================================
-          // SPACE
-          // ======================================================
-          const SizedBox(height: 28),
+          const SizedBox(height: 16),
 
-          // ======================================================
-          // PASSWORD
-          // ======================================================
-          SizedBox(
-            width: 315,
-            height: 36,
-
-            child: TextField(
-              controller: passwordController,
-
-              obscureText: hidePassword,
-
-              onSubmitted: (_) {
-                login();
-              },
-
-              style: const TextStyle(color: Colors.white, fontSize: 14),
-
-              cursorColor: const Color(0xFF22C55E),
-
-              decoration: InputDecoration(
-                hintText: 'Password',
-
-                hintStyle: const TextStyle(
-                  color: Color.fromRGBO(255, 254, 254, 0.493),
-                  fontSize: 14,
+          // Password Input
+          TextField(
+            controller: passwordController,
+            enabled: !isLoading,
+            obscureText: _obscurePassword,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => login(),
+            cursorColor: const Color(0xFF00FF66),
+            style: const TextStyle(color: Colors.white, fontSize: 14),
+            decoration: InputDecoration(
+              hintText: 'Password',
+              hintStyle: const TextStyle(color: Colors.white54, fontSize: 14),
+              filled: true,
+              fillColor: const Color(0xFF424242),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(
+                  color: Color(0xFF00FF66),
+                  width: 1.4,
                 ),
-
-                filled: true,
-
-                fillColor: const Color(0xFF555555),
-
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 11,
-                  vertical: 0,
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _obscurePassword
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                  color: Colors.white54,
+                  size: 20,
                 ),
-
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
-                  borderSide: BorderSide.none,
-                ),
-
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
-                  borderSide: BorderSide.none,
-                ),
-
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(6),
-                  borderSide: const BorderSide(
-                    color: Color(0xFF22C55E),
-                    width: 1,
-                  ),
-                ),
+                splashRadius: 18,
+                onPressed: () {
+                  setState(() {
+                    _obscurePassword = !_obscurePassword;
+                  });
+                },
               ),
             ),
           ),
 
-          // ======================================================
-          // SPACE
-          // ======================================================
           const SizedBox(height: 24),
 
-          // ======================================================
-          // LOG IN BUTTON
-          // ======================================================
-          SizedBox(
-            width: 195,
-            height: 36,
-
-            child: ElevatedButton(
-              onPressed: isLoading ? null : login,
-              child: isLoading
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.black,
-                      ),
-                    )
-                  : const Text(
-                      'LOG IN',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-            ),
-          ),
+          // LOG IN Button: hover/press feedback
+          _AnimatedLoginButton(onPressed: login, isLoading: isLoading),
         ],
+      ),
+    );
+  }
+}
+
+// Login button with a subtle scale-down press effect and hover brightness
+class _AnimatedLoginButton extends StatefulWidget {
+  final VoidCallback onPressed;
+  final bool isLoading;
+
+  const _AnimatedLoginButton({required this.onPressed, this.isLoading = false});
+
+  @override
+  State<_AnimatedLoginButton> createState() => _AnimatedLoginButtonState();
+}
+
+class _AnimatedLoginButtonState extends State<_AnimatedLoginButton> {
+  bool _isHovered = false;
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final bool disabled = widget.isLoading;
+
+    return MouseRegion(
+      cursor: disabled ? SystemMouseCursors.basic : SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTapDown: (_) {
+          if (!disabled) setState(() => _isPressed = true);
+        },
+        onTapUp: (_) => setState(() => _isPressed = false),
+        onTapCancel: () => setState(() => _isPressed = false),
+        onTap: disabled ? null : widget.onPressed,
+        child: AnimatedScale(
+          scale: _isPressed ? 0.97 : 1.0,
+          duration: const Duration(milliseconds: 100),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: disabled
+                  ? const Color(0xFF1E8F52)
+                  : _isHovered
+                  ? const Color(0xFF34E27E)
+                  : const Color(0xFF28C76F),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: _isHovered && !disabled
+                  ? [
+                      BoxShadow(
+                        color: const Color(0xFF28C76F).withValues(alpha: 0.4),
+                        blurRadius: 16,
+                        offset: const Offset(0, 4),
+                      ),
+                    ]
+                  : [],
+            ),
+            child: widget.isLoading
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.black,
+                    ),
+                  )
+                : const Text(
+                    'LOG IN',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1,
+                    ),
+                  ),
+          ),
+        ),
       ),
     );
   }

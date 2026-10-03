@@ -14,25 +14,13 @@ class FitpassLayout extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF1B1B1B),
-
       body: Row(
         children: [
-          // =====================================================
-          // SIDEBAR
-          // =====================================================
-
           _buildSidebar(context),
-
-          // =====================================================
-          // RIGHT SIDE
-          // =====================================================
           Expanded(
             child: Column(
               children: [
-                // TOP BAR
                 _buildTopBar(context),
-
-                // PAGE CONTENT
                 Expanded(child: child),
               ],
             ),
@@ -43,172 +31,105 @@ class FitpassLayout extends StatelessWidget {
   }
 
   // ===========================================================
-  // SIDEBAR
+  // SIDEBAR (admin design)
   // ===========================================================
 
   Widget _buildSidebar(BuildContext context) {
     return Container(
-      width: 218,
-      color: const Color(0xFF202020),
-
+      width: 220,
+      color: const Color(0xFF1B1B1B),
+      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 14),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 8),
-
-          // =====================================================
-          // FITPASS LOGO + TEXT
-          // =====================================================
-          SizedBox(
-            height: 72,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                // -------------------------------------------------
-                // LOGO
-                // -------------------------------------------------
-
-                Padding(
-                  padding: const EdgeInsets.only(left: 7),
-                  child: Image.asset(
-                    'assets/fitpass_logo.png',
-                    width: 52,
-                    height: 58,
-                    fit: BoxFit.contain,
-
-                    errorBuilder: (context, error, stackTrace) {
-                      return const SizedBox(
-                        width: 52,
-                        height: 58,
-                        child: Center(
-                          child: Icon(
-                            Icons.fitness_center,
+          Row(
+            children: [
+              Image.asset(
+                'assets/fitpass_logo.png',
+                width: 70,
+                height: 70,
+                fit: BoxFit.contain,
+                filterQuality: FilterQuality.high,
+                errorBuilder: (context, error, stackTrace) {
+                  return const SizedBox(
+                    width: 70,
+                    height: 70,
+                    child: Center(
+                      child: Icon(
+                        Icons.fitness_center,
+                        color: Colors.white,
+                        size: 40,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  RichText(
+                    text: const TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'FIT',
+                          style: TextStyle(
                             color: Colors.white,
-                            size: 35,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 24,
+                            height: 1.0,
                           ),
                         ),
-                      );
-                    },
+                        TextSpan(
+                          text: 'PASS',
+                          style: TextStyle(
+                            color: Color(0xFF9AE04A),
+                            fontWeight: FontWeight.w900,
+                            fontSize: 24,
+                            height: 1.0,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-
-                const SizedBox(width: 3),
-
-                // -------------------------------------------------
-                // FITPASS + GYM
-                // -------------------------------------------------
-                Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // FITPASS
-                    RichText(
-                      text: const TextSpan(
-                        children: [
-                          // FIT
-                          TextSpan(
-                            text: 'FIT',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -1,
-                            ),
-                          ),
-
-                          // PASS
-                          TextSpan(
-                            text: 'PASS',
-                            style: TextStyle(
-                              color: Color(0xFF22C55E),
-                              fontSize: 20,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: -1,
-                            ),
-                          ),
-                        ],
-                      ),
+                  const SizedBox(height: 2),
+                  const Text(
+                    'GYM',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      letterSpacing: 4,
+                      fontWeight: FontWeight.w500,
                     ),
-
-                    // GYM
-                    const Padding(
-                      padding: EdgeInsets.only(left: 39, top: 0),
-                      child: Text(
-                        'GYM',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 9,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 1.2,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 32),
 
-          // =====================================================
-          // DASHBOARD
-          // =====================================================
-          _sidebarButton(
+          _navItem(
             context,
-            icon: Icons.dashboard_outlined,
-            title: 'Dashboard',
-            route: '/dashboard',
+            Icons.dashboard_customize_outlined,
+            'Dashboard',
+            '/dashboard',
           ),
-
-          // =====================================================
-          // CHECK-INS
-          // =====================================================
-          _sidebarButton(
+          _navItem(context, Icons.login, 'Check-ins', '/checkins'),
+          _navItem(context, Icons.people_alt_outlined, 'Members', '/members'),
+          _navItem(
             context,
-            icon: Icons.login,
-            title: 'Check-ins',
-            route: '/checkins',
+            Icons.access_time,
+            'Manual Time in/out',
+            '/manual-time',
           ),
-
-          // =====================================================
-          // MEMBERS
-          // =====================================================
-          _sidebarButton(
+          _navItem(
             context,
-            icon: Icons.people_outline,
-            title: 'Members',
-            route: '/members',
+            Icons.notifications_none,
+            'Notifications',
+            '/notifications',
           ),
-
-          // =====================================================
-          // MANUAL TIME
-          // =====================================================
-          _sidebarButton(
-            context,
-            icon: Icons.access_time,
-            title: 'Manual Time in/out',
-            route: '/manual-time',
-          ),
-
-          // =====================================================
-          // NOTIFICATIONS
-          // =====================================================
-          _sidebarButton(
-            context,
-            icon: Icons.notifications_none,
-            title: 'Notifications',
-            route: '/notifications',
-          ),
-
-          // =====================================================
-          // SCANNER
-          // =====================================================
-          _sidebarButton(
-            context,
-            icon: Icons.qr_code_scanner,
-            title: 'Scanner',
-            route: '/scanner',
-          ),
+          _navItem(context, Icons.qr_code_scanner, 'Scanner', '/scanner'),
 
           const Spacer(),
         ],
@@ -216,113 +137,96 @@ class FitpassLayout extends StatelessWidget {
     );
   }
 
-  // ===========================================================
-  // SIDEBAR BUTTON
-  // ===========================================================
+  Widget _navItem(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String route,
+  ) {
+    final bool isActive = currentPage == route;
 
-  Widget _sidebarButton(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String route,
-  }) {
-    final bool selected = currentPage == route;
-
-    return GestureDetector(
-      onTap: () {
-        if (currentPage != route) {
-          Navigator.pushReplacementNamed(context, route);
-        }
-      },
-
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 9),
-
-        decoration: BoxDecoration(
-          color: selected ? const Color(0xFF245C37) : Colors.transparent,
-
-          borderRadius: BorderRadius.circular(6),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      decoration: BoxDecoration(
+        color: isActive ? const Color(0xFF294A31) : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: ListTile(
+        dense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 10),
+        leading: Icon(
+          icon,
+          color: isActive ? Colors.white : Colors.white70,
+          size: 20,
         ),
-
-        child: Row(
-          children: [
-            // ICON
-            Icon(
-              icon,
-              color: const Color.fromARGB(255, 251, 251, 251),
-              size: 21,
-            ),
-
-            const SizedBox(width: 10),
-
-            // TITLE
-            Text(
-              title,
-              style: const TextStyle(color: Colors.white, fontSize: 13),
-            ),
-          ],
+        title: Text(
+          title,
+          style: TextStyle(
+            color: isActive ? Colors.white : Colors.white70,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+            fontSize: 13.5,
+          ),
         ),
+        onTap: () {
+          if (currentPage != route) {
+            Navigator.pushReplacementNamed(context, route);
+          }
+        },
       ),
     );
   }
 
   // ===========================================================
-  // TOP BAR
+  // TOP BAR (admin design)
   // ===========================================================
 
   Widget _buildTopBar(BuildContext context) {
     return Container(
-      height: 70,
-
-      padding: const EdgeInsets.symmetric(horizontal: 18),
-
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Color(0xFF363636))),
-      ),
-
+      height: 60,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      color: const Color(0xFF1B1B1B),
       child: Row(
         children: [
-          // =====================================================
-          // SEARCH
-          // =====================================================
-
-          Container(
-            width: 315,
-            height: 36,
-
-            decoration: BoxDecoration(
-              color: const Color(0xFF494949),
-              borderRadius: BorderRadius.circular(6),
-            ),
-
-            child: const Row(
-              children: [
-                SizedBox(width: 12),
-
-                Icon(Icons.search, color: Colors.white70, size: 22),
-
-                SizedBox(width: 15),
-
-                Text(
-                  'Search Member.....',
-                  style: TextStyle(color: Colors.white, fontSize: 12),
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                height: 36,
+                constraints: const BoxConstraints(maxWidth: 400),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2B2B2B),
+                  borderRadius: BorderRadius.circular(6),
                 ),
-              ],
+                alignment: Alignment.center,
+                child: const TextField(
+                  cursorColor: Color(0xFF00FF66),
+                  style: TextStyle(color: Colors.white, fontSize: 13),
+                  textAlignVertical: TextAlignVertical.center,
+                  decoration: InputDecoration(
+                    hintText: 'Search Member...',
+                    hintStyle: TextStyle(color: Colors.grey, fontSize: 13),
+                    border: InputBorder.none,
+                    isCollapsed: true,
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: Colors.grey,
+                      size: 18,
+                    ),
+                    prefixIconConstraints: BoxConstraints(
+                      minWidth: 40,
+                      minHeight: 36,
+                    ),
+                    contentPadding: EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ),
             ),
           ),
 
-          const Spacer(),
-
-          // =====================================================
           // STAFF PROFILE + LOGOUT DROPDOWN
-          // =====================================================
           PopupMenuButton<String>(
-            color: const Color(0xFF292929),
-
-            offset: const Offset(0, 55),
-
+            color: const Color(0xFF2B2B2B),
+            offset: const Offset(0, 45),
             onSelected: (value) {
               if (value == 'logout') {
                 Navigator.pushNamedAndRemoveUntil(
@@ -332,16 +236,13 @@ class FitpassLayout extends StatelessWidget {
                 );
               }
             },
-
             itemBuilder: (context) => [
               const PopupMenuItem<String>(
                 value: 'logout',
                 child: Row(
                   children: [
                     Icon(Icons.logout, color: Colors.redAccent, size: 18),
-
                     SizedBox(width: 10),
-
                     Text(
                       'Logout',
                       style: TextStyle(color: Colors.white, fontSize: 13),
@@ -350,30 +251,34 @@ class FitpassLayout extends StatelessWidget {
                 ),
               ),
             ],
-
             child: const Row(
               children: [
-                // STAFF PROFILE
                 CircleAvatar(
-                  radius: 23,
-
-                  backgroundColor: Color(0xFF777777),
-
-                  child: Icon(Icons.person, color: Colors.white, size: 25),
+                  radius: 16,
+                  backgroundColor: Colors.grey,
+                  child: Icon(Icons.person, color: Colors.white, size: 18),
                 ),
-
-                SizedBox(width: 12),
-
-                Text(
-                  'Staff User',
-                  style: TextStyle(color: Colors.white, fontSize: 12),
+                SizedBox(width: 8),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Staff User',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'Staff',
+                      style: TextStyle(color: Colors.grey, fontSize: 10),
+                    ),
+                  ],
                 ),
-
-                SizedBox(width: 15),
-
-                Icon(Icons.chevron_right, color: Colors.white, size: 20),
-
-                SizedBox(width: 10),
+                SizedBox(width: 6),
+                Icon(Icons.arrow_drop_down, color: Colors.white70, size: 20),
               ],
             ),
           ),

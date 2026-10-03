@@ -317,6 +317,7 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
   }) {
     return Container(
       height: 54,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         color: _fieldColor,
         borderRadius: BorderRadius.circular(27),
@@ -324,15 +325,16 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
       child: TextField(
         controller: controller,
         obscureText: obscureText,
+        textAlignVertical: TextAlignVertical.center,
         style: const TextStyle(color: Colors.white, fontSize: 14),
         decoration: InputDecoration(
-          isCollapsed: true,
+          isDense: true,
           hintText: hint,
           hintStyle: const TextStyle(color: _hintColor, fontSize: 14),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 22,
-            vertical: 17,
+            vertical: 16,
           ),
           suffixIcon: isPassword
               ? Padding(
@@ -359,11 +361,11 @@ class _CreateAccountScreenState extends State<CreateAccountScreen> {
 
   Widget _buildMemberTypeDropdown() {
     return Container(
-      height: 45,
-      padding: const EdgeInsets.symmetric(horizontal: 18),
+      height: 54,
+      padding: const EdgeInsets.only(left: 22, right: 16),
       decoration: BoxDecoration(
         color: _fieldColor,
-        borderRadius: BorderRadius.circular(21),
+        borderRadius: BorderRadius.circular(27),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(

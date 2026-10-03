@@ -17,7 +17,6 @@ class FitpassLayout extends StatelessWidget {
 
       body: Row(
         children: [
-
           // =====================================================
           // SIDEBAR
           // =====================================================
@@ -27,18 +26,14 @@ class FitpassLayout extends StatelessWidget {
           // =====================================================
           // RIGHT SIDE
           // =====================================================
-
           Expanded(
             child: Column(
               children: [
-
                 // TOP BAR
                 _buildTopBar(context),
 
                 // PAGE CONTENT
-                Expanded(
-                  child: child,
-                ),
+                Expanded(child: child),
               ],
             ),
           ),
@@ -58,35 +53,29 @@ class FitpassLayout extends StatelessWidget {
 
       child: Column(
         children: [
-
           const SizedBox(height: 8),
 
           // =====================================================
           // FITPASS LOGO + TEXT
           // =====================================================
-
           SizedBox(
             height: 72,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-
                 // -------------------------------------------------
                 // LOGO
                 // -------------------------------------------------
 
                 Padding(
-                  padding: const EdgeInsets.only(
-                    left: 7,
-                  ),
+                  padding: const EdgeInsets.only(left: 7),
                   child: Image.asset(
                     'assets/fitpass_logo.png',
                     width: 52,
                     height: 58,
                     fit: BoxFit.contain,
 
-                    errorBuilder:
-                        (context, error, stackTrace) {
+                    errorBuilder: (context, error, stackTrace) {
                       return const SizedBox(
                         width: 52,
                         height: 58,
@@ -107,19 +96,14 @@ class FitpassLayout extends StatelessWidget {
                 // -------------------------------------------------
                 // FITPASS + GYM
                 // -------------------------------------------------
-
                 Column(
-                  mainAxisAlignment:
-                      MainAxisAlignment.center,
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     // FITPASS
                     RichText(
                       text: const TextSpan(
                         children: [
-
                           // FIT
                           TextSpan(
                             text: 'FIT',
@@ -147,10 +131,7 @@ class FitpassLayout extends StatelessWidget {
 
                     // GYM
                     const Padding(
-                      padding: EdgeInsets.only(
-                        left: 39,
-                        top: 0,
-                      ),
+                      padding: EdgeInsets.only(left: 39, top: 0),
                       child: Text(
                         'GYM',
                         style: TextStyle(
@@ -172,7 +153,6 @@ class FitpassLayout extends StatelessWidget {
           // =====================================================
           // DASHBOARD
           // =====================================================
-
           _sidebarButton(
             context,
             icon: Icons.dashboard_outlined,
@@ -183,7 +163,6 @@ class FitpassLayout extends StatelessWidget {
           // =====================================================
           // CHECK-INS
           // =====================================================
-
           _sidebarButton(
             context,
             icon: Icons.login,
@@ -194,7 +173,6 @@ class FitpassLayout extends StatelessWidget {
           // =====================================================
           // MEMBERS
           // =====================================================
-
           _sidebarButton(
             context,
             icon: Icons.people_outline,
@@ -205,7 +183,6 @@ class FitpassLayout extends StatelessWidget {
           // =====================================================
           // MANUAL TIME
           // =====================================================
-
           _sidebarButton(
             context,
             icon: Icons.access_time,
@@ -216,7 +193,6 @@ class FitpassLayout extends StatelessWidget {
           // =====================================================
           // NOTIFICATIONS
           // =====================================================
-
           _sidebarButton(
             context,
             icon: Icons.notifications_none,
@@ -227,7 +203,6 @@ class FitpassLayout extends StatelessWidget {
           // =====================================================
           // SCANNER
           // =====================================================
-
           _sidebarButton(
             context,
             icon: Icons.qr_code_scanner,
@@ -256,39 +231,27 @@ class FitpassLayout extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         if (currentPage != route) {
-          Navigator.pushReplacementNamed(
-            context,
-            route,
-          );
+          Navigator.pushReplacementNamed(context, route);
         }
       },
 
       child: Container(
-        margin: const EdgeInsets.symmetric(
-          horizontal: 7,
-          vertical: 2,
-        ),
+        margin: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
 
-        padding: const EdgeInsets.symmetric(
-          horizontal: 9,
-          vertical: 9,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 9),
 
         decoration: BoxDecoration(
-          color: selected
-              ? const Color(0xFF245C37)
-              : Colors.transparent,
+          color: selected ? const Color(0xFF245C37) : Colors.transparent,
 
           borderRadius: BorderRadius.circular(6),
         ),
 
         child: Row(
           children: [
-
             // ICON
             Icon(
               icon,
-              color: Colors.black,
+              color: const Color.fromARGB(255, 251, 251, 251),
               size: 21,
             ),
 
@@ -297,10 +260,7 @@ class FitpassLayout extends StatelessWidget {
             // TITLE
             Text(
               title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-              ),
+              style: const TextStyle(color: Colors.white, fontSize: 13),
             ),
           ],
         ),
@@ -316,21 +276,14 @@ class FitpassLayout extends StatelessWidget {
     return Container(
       height: 70,
 
-      padding: const EdgeInsets.symmetric(
-        horizontal: 18,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 18),
 
       decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Color(0xFF363636),
-          ),
-        ),
+        border: Border(bottom: BorderSide(color: Color(0xFF363636))),
       ),
 
       child: Row(
         children: [
-
           // =====================================================
           // SEARCH
           // =====================================================
@@ -341,29 +294,20 @@ class FitpassLayout extends StatelessWidget {
 
             decoration: BoxDecoration(
               color: const Color(0xFF494949),
-              borderRadius:
-                  BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(6),
             ),
 
             child: const Row(
               children: [
-
                 SizedBox(width: 12),
 
-                Icon(
-                  Icons.search,
-                  color: Colors.white70,
-                  size: 22,
-                ),
+                Icon(Icons.search, color: Colors.white70, size: 22),
 
                 SizedBox(width: 15),
 
                 Text(
                   'Search Member.....',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: Colors.white, fontSize: 12),
                 ),
               ],
             ),
@@ -374,7 +318,6 @@ class FitpassLayout extends StatelessWidget {
           // =====================================================
           // STAFF PROFILE + LOGOUT DROPDOWN
           // =====================================================
-
           PopupMenuButton<String>(
             color: const Color(0xFF292929),
 
@@ -395,20 +338,13 @@ class FitpassLayout extends StatelessWidget {
                 value: 'logout',
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.logout,
-                      color: Colors.redAccent,
-                      size: 18,
-                    ),
+                    Icon(Icons.logout, color: Colors.redAccent, size: 18),
 
                     SizedBox(width: 10),
 
                     Text(
                       'Logout',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: Colors.white, fontSize: 13),
                     ),
                   ],
                 ),
@@ -417,38 +353,25 @@ class FitpassLayout extends StatelessWidget {
 
             child: const Row(
               children: [
-
                 // STAFF PROFILE
                 CircleAvatar(
                   radius: 23,
 
-                  backgroundColor:
-                      Color(0xFF777777),
+                  backgroundColor: Color(0xFF777777),
 
-                  child: Icon(
-                    Icons.person,
-                    color: Colors.white,
-                    size: 25,
-                  ),
+                  child: Icon(Icons.person, color: Colors.white, size: 25),
                 ),
 
                 SizedBox(width: 12),
 
                 Text(
                   'Staff User',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: Colors.white, fontSize: 12),
                 ),
 
                 SizedBox(width: 15),
 
-                Icon(
-                  Icons.chevron_right,
-                  color: Colors.white,
-                  size: 20,
-                ),
+                Icon(Icons.chevron_right, color: Colors.white, size: 20),
 
                 SizedBox(width: 10),
               ],

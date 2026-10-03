@@ -114,8 +114,22 @@ class _LoginPageState extends State<LoginPage> {
                   height: height,
                   color: const Color(0xFF292929),
 
-                  child: Center(
-                    child: SingleChildScrollView(child: _buildLoginForm()),
+                  child: Stack(
+                    children: [
+                      // STAFF LOGIN header (top center)
+                      Align(
+                        alignment: Alignment.topCenter,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 48),
+                          child: _buildStaffHeader(),
+                        ),
+                      ),
+
+                      // Form (center)
+                      Center(
+                        child: SingleChildScrollView(child: _buildLoginForm()),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -143,6 +157,7 @@ class _LoginPageState extends State<LoginPage> {
           width: leftWidth * 0.43,
           height: 150,
           fit: BoxFit.contain,
+          filterQuality: FilterQuality.high,
 
           errorBuilder: (context, error, stackTrace) {
             return Container(
@@ -216,6 +231,69 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   // ============================================================
+  // STAFF LOGIN HEADER
+  // ============================================================
+
+  Widget _buildStaffHeader() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Icon badge
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0x2622C55E),
+            shape: BoxShape.circle,
+            border: Border.all(color: const Color(0xFF22C55E), width: 2),
+          ),
+          child: const Icon(
+            Icons.admin_panel_settings,
+            color: Color(0xFF22C55E),
+            size: 36,
+          ),
+        ),
+
+        const SizedBox(height: 14),
+
+        // Title
+        const Text(
+          'STAFF LOGIN',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 34,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 3,
+          ),
+        ),
+
+        const SizedBox(height: 8),
+
+        // Green accent line
+        Container(
+          width: 70,
+          height: 4,
+          decoration: BoxDecoration(
+            color: const Color(0xFF22C55E),
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+
+        const SizedBox(height: 10),
+
+        // Subtitle
+        const Text(
+          'Authorized personnel only',
+          style: TextStyle(
+            color: Colors.white54,
+            fontSize: 13,
+            letterSpacing: 1,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ============================================================
   // LOGIN FORM
   // ============================================================
 
@@ -225,25 +303,6 @@ class _LoginPageState extends State<LoginPage> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // ======================================================
-          // STAFF LOGIN
-          // ======================================================
-          const SizedBox(
-            width: 315,
-            child: Text(
-              'STAFF LOGIN',
-              textAlign: TextAlign.left,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.5,
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 18),
-
           // ======================================================
           // ADMINISTRATOR
           // ======================================================
@@ -261,7 +320,10 @@ class _LoginPageState extends State<LoginPage> {
               decoration: InputDecoration(
                 hintText: 'Administrator',
 
-                hintStyle: const TextStyle(color: Colors.white, fontSize: 14),
+                hintStyle: const TextStyle(
+                  color: Color.fromRGBO(255, 254, 254, 0.493),
+                  fontSize: 14,
+                ),
 
                 filled: true,
 
@@ -321,7 +383,10 @@ class _LoginPageState extends State<LoginPage> {
               decoration: InputDecoration(
                 hintText: 'Password',
 
-                hintStyle: const TextStyle(color: Colors.white, fontSize: 14),
+                hintStyle: const TextStyle(
+                  color: Color.fromRGBO(255, 254, 254, 0.493),
+                  fontSize: 14,
+                ),
 
                 filled: true,
 

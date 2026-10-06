@@ -116,6 +116,7 @@ class FitpassLayout extends StatelessWidget {
             '/dashboard',
           ),
           _navItem(context, Icons.login, 'Check-ins', '/checkins'),
+          _navItem(context, Icons.payments_outlined, 'Payments', '/payments'),
           _navItem(context, Icons.people_alt_outlined, 'Members', '/members'),
           _navItem(
             context,

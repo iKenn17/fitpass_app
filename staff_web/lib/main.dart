@@ -5,6 +5,7 @@ import 'firebase_options.dart';
 import 'pages/login.dart';
 import 'pages/dashboard.dart';
 import 'pages/checkins.dart' as checkins;
+import 'pages/payments.dart';
 import 'pages/members.dart' as members;
 import 'pages/manual_time.dart' as manual_time;
 import 'pages/notifications.dart';
@@ -33,6 +34,8 @@ class FitpassApp extends StatelessWidget {
         '/dashboard': (context) => DashboardPage(),
 
         '/checkins': (context) => checkins.CheckInsPage(),
+
+        '/payments': (context) => const PaymentsPage(),
 
         '/members': (context) => members.MembersPage(),
 
